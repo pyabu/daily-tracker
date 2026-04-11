@@ -127,6 +127,25 @@ class TrackerData {
 // App State
 const data = new TrackerData();
 let chart = null;
+let historySearchQuery = '';
+
+function isProfileComplete() {
+    try {
+        const raw = localStorage.getItem('userInfo');
+        if (!raw) return false;
+        const u = JSON.parse(raw);
+        const nameOk = u && String(u.name || '').trim().length > 0;
+        const ageVal = u && u.age;
+        const ageOk = ageVal != null && String(ageVal).trim() !== '' && !Number.isNaN(Number(ageVal));
+        return nameOk && ageOk;
+    } catch {
+        return false;
+    }
+}
+
+function setProfileGate(active) {
+    document.body.classList.toggle('profile-required', active);
+}
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
@@ -134,13 +153,16 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function initializeApp() {
+    checkWelcomeModal();
     setupNavigation();
     setupFormHandlers();
+    setupDataNavigateDelegation();
+    setupHistorySearch();
+    setupContactsListDelegation();
     updateDashboard();
     updateCurrentDate();
     loadAllSettings();
     setupNewFeatureListeners();
-    checkWelcomeModal();
     
     // Set default date and time
     const now = new Date();
@@ -150,14 +172,15 @@ function initializeApp() {
 
 // Check if user info exists, show welcome modal if not
 function checkWelcomeModal() {
-    const userInfo = localStorage.getItem('userInfo');
+    const modal = document.getElementById('welcomeModal');
     
-    if (!userInfo) {
-        // Show welcome modal
-        document.getElementById('welcomeModal').style.display = 'flex';
+    if (!isProfileComplete()) {
+        modal.style.display = 'flex';
+        setProfileGate(true);
     } else {
-        // Load and display user info
-        const user = JSON.parse(userInfo);
+        modal.style.display = 'none';
+        setProfileGate(false);
+        const user = JSON.parse(localStorage.getItem('userInfo'));
         updateUserDisplay(user);
     }
 }
@@ -183,6 +206,7 @@ document.getElementById('welcomeForm').addEventListener('submit', (e) => {
     
     // Hide modal
     document.getElementById('welcomeModal').style.display = 'none';
+    setProfileGate(false);
     
     // Show welcome toast
     showToast(`Welcome, ${name}! 🎉`, 'success');
@@ -193,6 +217,11 @@ function updateUserDisplay(user) {
     document.getElementById('displayUserName').textContent = user.name;
     document.getElementById('displayUserAge').textContent = `Age: ${user.age}`;
     
+    const brand = document.getElementById('topBarBrand');
+    if (brand) {
+        brand.textContent = user.name || 'Daily Health Tracker';
+    }
+    
     // Update page subtitle with personalized greeting
     const hour = new Date().getHours();
     let greeting = 'Good morning';
@@ -200,6 +229,37 @@ function updateUserDisplay(user) {
     else if (hour >= 17) greeting = 'Good evening';
     
     document.getElementById('pageSubtitle').textContent = `${greeting}, ${user.name}!`;
+}
+
+function setSidebarOpen(isOpen) {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    const btn = document.getElementById('menuHamburger');
+    if (isOpen) {
+        sidebar.classList.add('active');
+        overlay.classList.add('active');
+    } else {
+        sidebar.classList.remove('active');
+        overlay.classList.remove('active');
+    }
+    if (btn) {
+        btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    }
+}
+
+function setupDataNavigateDelegation() {
+    document.addEventListener('click', (e) => {
+        const trigger = e.target.closest('[data-navigate]');
+        if (!trigger) return;
+        e.preventDefault();
+        if (!isProfileComplete()) {
+            showToast('Please enter your name and age first.', 'error');
+            document.getElementById('welcomeModal').style.display = 'flex';
+            setProfileGate(true);
+            return;
+        }
+        navigateTo(trigger.dataset.navigate);
+    });
 }
 
 // Navigation
@@ -210,39 +270,61 @@ function setupNavigation() {
     document.querySelectorAll('.nav-item').forEach(item => {
         item.addEventListener('click', (e) => {
             e.preventDefault();
+            if (!isProfileComplete()) {
+                showToast('Please enter your name and age first.', 'error');
+                document.getElementById('welcomeModal').style.display = 'flex';
+                setProfileGate(true);
+                return;
+            }
             const page = item.dataset.page;
             navigateTo(page);
             
-            // Close sidebar on mobile after navigation
             if (window.innerWidth <= 768) {
-                sidebar.classList.remove('active');
-                overlay.classList.remove('active');
+                setSidebarOpen(false);
             }
         });
     });
     
-    // Sidebar toggle
-    document.getElementById('sidebarToggle')?.addEventListener('click', () => {
-        sidebar.classList.toggle('active');
-        overlay.classList.toggle('active');
+    document.getElementById('menuHamburger')?.addEventListener('click', () => {
+        if (!isProfileComplete()) {
+            showToast('Please enter your name and age first.', 'error');
+            document.getElementById('welcomeModal').style.display = 'flex';
+            setProfileGate(true);
+            return;
+        }
+        const open = !sidebar.classList.contains('active');
+        setSidebarOpen(open);
     });
     
-    // Close sidebar when clicking overlay
+    document.getElementById('sidebarCloseBtn')?.addEventListener('click', () => {
+        setSidebarOpen(false);
+    });
+    
     overlay?.addEventListener('click', () => {
-        sidebar.classList.remove('active');
-        overlay.classList.remove('active');
+        setSidebarOpen(false);
     });
     
-    // Close sidebar on window resize if desktop
     window.addEventListener('resize', () => {
         if (window.innerWidth > 768) {
-            sidebar.classList.remove('active');
-            overlay.classList.remove('active');
+            setSidebarOpen(false);
         }
     });
 }
 
 function navigateTo(pageName) {
+    if (!isProfileComplete()) {
+        showToast('Please enter your name and age first.', 'error');
+        document.getElementById('welcomeModal').style.display = 'flex';
+        setProfileGate(true);
+        return;
+    }
+    
+    const targetPage = document.getElementById(`${pageName}-page`);
+    if (!targetPage) {
+        console.warn('Unknown page:', pageName);
+        return;
+    }
+    
     // Update nav items
     document.querySelectorAll('.nav-item').forEach(item => {
         item.classList.remove('active');
@@ -255,7 +337,7 @@ function navigateTo(pageName) {
     document.querySelectorAll('.page').forEach(page => {
         page.classList.remove('active');
     });
-    document.getElementById(`${pageName}-page`).classList.add('active');
+    targetPage.classList.add('active');
     
     // Update page title
     const titles = {
@@ -279,10 +361,22 @@ function setupFormHandlers() {
     
     // Quick actions
     document.getElementById('whatsappQuickSend')?.addEventListener('click', () => {
+        if (!isProfileComplete()) {
+            showToast('Please enter your name and age first.', 'error');
+            document.getElementById('welcomeModal').style.display = 'flex';
+            setProfileGate(true);
+            return;
+        }
         whatsappManager.sendToWhatsApp();
     });
     
     document.getElementById('exportQuick')?.addEventListener('click', () => {
+        if (!isProfileComplete()) {
+            showToast('Please enter your name and age first.', 'error');
+            document.getElementById('welcomeModal').style.display = 'flex';
+            setProfileGate(true);
+            return;
+        }
         data.exportToCSV();
         showToast('📊 Data exported successfully!', 'success');
     });
@@ -291,10 +385,23 @@ function setupFormHandlers() {
 function handleFormSubmit(e) {
     e.preventDefault();
     
+    if (!isProfileComplete()) {
+        showToast('Please enter your name and age first.', 'error');
+        document.getElementById('welcomeModal').style.display = 'flex';
+        setProfileGate(true);
+        return;
+    }
+    
+    const mealInput = document.querySelector('input[name="mealType"]:checked');
+    if (!mealInput) {
+        showToast('Please select a meal type.', 'error');
+        return;
+    }
+    
     const entry = {
         date: document.getElementById('entryDate').value,
         time: document.getElementById('entryTime').value,
-        mealType: document.querySelector('input[name="mealType"]:checked').value,
+        mealType: mealInput.value,
         sugarLevel: parseInt(document.getElementById('sugarLevel').value),
         insulinDose: parseFloat(document.getElementById('insulinDose').value) || 0,
         notes: document.getElementById('notes').value
@@ -447,6 +554,63 @@ function renderRecentEntries(entries) {
     `).join('');
 }
 
+function getFilteredHistoryEntries(query) {
+    const q = (query || '').trim().toLowerCase();
+    if (!q) return data.entries;
+    return data.entries.filter(e => {
+        const hay = `${e.date} ${e.time} ${e.mealType} ${e.sugarLevel} ${e.insulinDose} ${e.notes || ''}`.toLowerCase();
+        return hay.includes(q);
+    });
+}
+
+function renderHistoryList(entries) {
+    const historyList = document.getElementById('historyList');
+    if (!historyList) return;
+    
+    if (entries.length === 0) {
+        const emptyMsg = data.entries.length === 0
+            ? 'No entries yet. Add one from Add Entry.'
+            : 'No entries match your search.';
+        historyList.innerHTML = `<p class="history-empty" style="text-align:center;color:#999;padding:32px;">${emptyMsg}</p>`;
+        return;
+    }
+    
+    historyList.innerHTML = entries.map(entry => `
+        <div class="entry-card">
+            <div class="entry-header">
+                <span class="entry-time">${entry.date} ${formatTime(entry.time)}</span>
+                <span class="entry-meal">${getMealIcon(entry.mealType)} ${capitalize(entry.mealType)}</span>
+            </div>
+            <div class="entry-details">
+                <div class="entry-detail">
+                    <strong>Sugar:</strong> ${entry.sugarLevel} mg/dL
+                </div>
+                <div class="entry-detail">
+                    <strong>Insulin:</strong> ${entry.insulinDose} units
+                </div>
+            </div>
+            ${entry.notes ? `<div class="entry-notes">📝 ${escapeHtml(entry.notes)}</div>` : ''}
+        </div>
+    `).join('');
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function setupHistorySearch() {
+    const el = document.getElementById('searchEntries');
+    if (!el) return;
+    el.addEventListener('input', () => {
+        historySearchQuery = el.value;
+        if (document.getElementById('history-page')?.classList.contains('active')) {
+            renderHistoryList(getFilteredHistoryEntries(historySearchQuery));
+        }
+    });
+}
+
 // History & Chart
 function renderHistory() {
     const canvas = document.getElementById('sugarChart');
@@ -469,6 +633,7 @@ function renderHistory() {
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             plugins: {
                 legend: { display: false }
             },
@@ -482,25 +647,7 @@ function renderHistory() {
         }
     });
     
-    // Render all entries
-    const historyList = document.getElementById('historyList');
-    historyList.innerHTML = data.entries.map(entry => `
-        <div class="entry-card">
-            <div class="entry-header">
-                <span class="entry-time">${entry.date} ${formatTime(entry.time)}</span>
-                <span class="entry-meal">${getMealIcon(entry.mealType)} ${capitalize(entry.mealType)}</span>
-            </div>
-            <div class="entry-details">
-                <div class="entry-detail">
-                    <strong>Sugar:</strong> ${entry.sugarLevel} mg/dL
-                </div>
-                <div class="entry-detail">
-                    <strong>Insulin:</strong> ${entry.insulinDose} units
-                </div>
-            </div>
-            ${entry.notes ? `<div class="entry-notes">📝 ${entry.notes}</div>` : ''}
-        </div>
-    `).join('');
+    renderHistoryList(getFilteredHistoryEntries(historySearchQuery));
 }
 
 function getLast7Days() {
@@ -1054,22 +1201,22 @@ function renderContactsList() {
     container.innerHTML = contactManager.contacts.map(contact => `
         <div class="contact-item">
             <div class="contact-info">
-                <div class="contact-name">${contact.name}</div>
+                <div class="contact-name">${escapeHtml(contact.name)}</div>
                 <div class="contact-details">
-                    <span class="contact-phone">📱 ${contact.phone}</span>
+                    <span class="contact-phone">📱 ${escapeHtml(contact.phone)}</span>
                     <span class="contact-relation">
                         ${relationIcons[contact.relation] || '👤'} ${capitalize(contact.relation)}
                     </span>
                 </div>
             </div>
             <div class="contact-actions">
-                <button class="contact-btn call" onclick="contactManager.callContact('${contact.phone}')">
+                <button type="button" class="contact-btn call" data-contact-action="call" data-phone="${escapeHtml(contact.phone)}">
                     📞 Call
                 </button>
-                <button class="contact-btn message" onclick="contactManager.messageContact('${contact.phone}')">
+                <button type="button" class="contact-btn message" data-contact-action="message" data-phone="${escapeHtml(contact.phone)}">
                     💬 Message
                 </button>
-                <button class="contact-btn delete" onclick="deleteContact(${contact.id})">
+                <button type="button" class="contact-btn delete" data-contact-action="delete" data-id="${contact.id}">
                     🗑️
                 </button>
             </div>
@@ -1077,12 +1224,25 @@ function renderContactsList() {
     `).join('');
 }
 
-// Delete contact helper
-function deleteContact(id) {
-    if (confirm('Remove this contact?')) {
-        contactManager.deleteContact(id);
-        renderContactsList();
-    }
+function setupContactsListDelegation() {
+    const container = document.getElementById('contactsList');
+    if (!container) return;
+    container.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-contact-action]');
+        if (!btn) return;
+        const action = btn.dataset.contactAction;
+        if (action === 'call') {
+            contactManager.callContact(btn.dataset.phone);
+        } else if (action === 'message') {
+            contactManager.messageContact(btn.dataset.phone);
+        } else if (action === 'delete') {
+            const id = Number(btn.dataset.id);
+            if (confirm('Remove this contact?')) {
+                contactManager.deleteContact(id);
+                renderContactsList();
+            }
+        }
+    });
 }
 
 // Setup feature listeners

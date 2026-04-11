@@ -41,6 +41,17 @@ body {
     line-height: 1.6;
 }
 
+/* Block app interaction until name & age are saved (welcome modal is on top) */
+body.profile-required .main-content {
+    pointer-events: none;
+    user-select: none;
+}
+
+body.profile-required .sidebar,
+body.profile-required .sidebar-overlay {
+    pointer-events: none;
+}
+
 /* Sidebar */
 .sidebar {
     position: fixed;
@@ -72,19 +83,12 @@ body {
         width: 100% !important;
     }
     
-    .sidebar-toggle {
-        display: block !important;
-    }
 }
 
 /* Desktop: Show sidebar by default */
 @media (min-width: 769px) {
     .sidebar {
         transform: translateX(0);
-    }
-    
-    .sidebar-toggle {
-        display: none;
     }
 }
 
@@ -109,13 +113,30 @@ body {
     font-size: 1.5em;
 }
 
-.sidebar-toggle {
+.sidebar-close-btn {
     display: none;
-    background: none;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
     border: none;
-    font-size: 1.5em;
-    cursor: pointer;
+    border-radius: var(--radius-sm);
+    background: var(--bg-primary);
     color: var(--text-secondary);
+    font-size: 1.1rem;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.sidebar-close-btn:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+@media (max-width: 768px) {
+    .sidebar-close-btn {
+        display: flex;
+    }
 }
 
 .sidebar-nav {
@@ -207,6 +228,72 @@ body {
     position: sticky;
     top: 0;
     z-index: 100;
+}
+
+.top-bar-left {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    min-width: 0;
+    flex: 1;
+}
+
+.menu-hamburger {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    margin: 0;
+    padding: 0;
+    border: none;
+    border-radius: var(--radius-md);
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    font-size: 1.35rem;
+    cursor: pointer;
+    flex-shrink: 0;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.menu-hamburger:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.menu-hamburger-icon {
+    line-height: 1;
+}
+
+@media (max-width: 768px) {
+    .menu-hamburger {
+        display: flex;
+    }
+}
+
+.top-bar-heading {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    flex: 1;
+}
+
+.app-brand {
+    display: none;
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--primary);
+    line-height: 1.2;
+}
+
+@media (max-width: 768px) {
+    .app-brand {
+        display: block;
+    }
 }
 
 .page-title {
@@ -963,6 +1050,12 @@ body {
     font-size: 1.2em;
 }
 
+/* History chart (Chart.js maintainAspectRatio: false needs height) */
+#history-page #sugarChart {
+    width: 100% !important;
+    min-height: 240px;
+}
+
 /* Search Input */
 .search-input {
     padding: 10px 16px;
@@ -1631,35 +1724,7 @@ body {
     */
 }
 
-/* Sidebar Toggle Button - Always visible on mobile */
-@media (max-width: 768px) {
-    .sidebar-toggle {
-        position: fixed;
-        top: 15px;
-        left: 15px;
-        z-index: 1002;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        width: 44px;
-        height: 44px;
-        border-radius: 12px;
-        font-size: 20px;
-        cursor: pointer;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .main-content {
-        padding-top: 70px;
-    }
-
-    .top-bar {
-        margin-top: 0;
-    }
-}
+/* Mobile: menu control lives in top bar (no extra top padding on main) */
 
 /* Overlay for mobile sidebar */
 .sidebar-overlay {
@@ -1708,6 +1773,7 @@ body {
     /* Better chart display */
     #sugarChart {
         max-height: 250px;
+        min-height: 220px;
     }
 
     /* Improve timeline on mobile */

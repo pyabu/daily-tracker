@@ -14,7 +14,7 @@
                 <span class="logo-icon">🩸</span>
                 <span class="logo-text">Daily Health Tracker</span>
             </div>
-            <button class="sidebar-toggle" id="sidebarToggle">☰</button>
+            <button type="button" class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Close menu">✕</button>
         </div>
         
         <nav class="sidebar-nav">
@@ -56,8 +56,14 @@
         <!-- Top Bar -->
         <header class="top-bar">
             <div class="top-bar-left">
-                <h1 class="page-title" id="pageTitle">Dashboard</h1>
-                <p class="page-subtitle" id="pageSubtitle">Track your health journey</p>
+                <button type="button" class="menu-hamburger" id="menuHamburger" aria-label="Open menu" aria-expanded="false" aria-controls="sidebar">
+                    <span class="menu-hamburger-icon" aria-hidden="true">☰</span>
+                </button>
+                <div class="top-bar-heading">
+                    <span class="app-brand" id="topBarBrand">Daily Health Tracker</span>
+                    <h1 class="page-title" id="pageTitle">Dashboard</h1>
+                    <p class="page-subtitle" id="pageSubtitle">Track your health journey</p>
+                </div>
             </div>
             <div class="top-bar-right">
                 <div class="user-greeting" id="userGreeting" style="margin-right: 20px; display: flex; align-items: center; gap: 10px;">
@@ -118,7 +124,7 @@
 
             <!-- Quick Actions -->
             <div class="quick-actions">
-                <button class="action-btn primary" onclick="navigateTo('add-entry')">
+                <button type="button" class="action-btn primary" data-navigate="add-entry">
                     <span class="btn-icon">➕</span>
                     <span>Quick Add</span>
                 </button>
@@ -147,7 +153,7 @@
             <div class="card">
                 <div class="card-header">
                     <h2 class="card-title">Recent Entries</h2>
-                    <a href="#" class="card-link" onclick="navigateTo('history')">View All →</a>
+                    <a href="#" class="card-link" data-navigate="history">View All →</a>
                 </div>
                 <div class="card-body">
                     <div class="entries-list" id="recentEntries"></div>
@@ -296,7 +302,7 @@
                             <input type="number" id="profileAge" placeholder="Your age" min="1" max="120" class="form-input" />
                         </div>
                         
-                        <button class="settings-btn primary" id="updateProfile">
+                        <button type="button" class="settings-btn primary" id="updateProfile">
                             <span class="btn-icon">💾</span>
                             Update Profile
                         </button>
@@ -333,11 +339,11 @@
                         </div>
                         
                         <div class="button-group">
-                            <button class="settings-btn whatsapp" id="sendNowWhatsApp">
+                            <button type="button" class="settings-btn whatsapp" id="sendNowWhatsApp">
                                 <span class="btn-icon">📤</span>
                                 Send Now
                             </button>
-                            <button class="settings-btn secondary" id="testWhatsApp">
+                            <button type="button" class="settings-btn secondary" id="testWhatsApp">
                                 <span class="btn-icon">🧪</span>
                                 Test Connection
                             </button>
@@ -409,7 +415,7 @@
                                     <option value="caregiver">Caregiver</option>
                                 </select>
                             </div>
-                            <button class="settings-btn primary" id="addContact">
+                            <button type="button" class="settings-btn primary" id="addContact">
                                 <span class="btn-icon">➕</span>
                                 Add Contact
                             </button>
@@ -572,22 +578,22 @@
                         </div>
                         
                         <div class="button-group">
-                            <button class="settings-btn" id="exportJSON">
+                            <button type="button" class="settings-btn" id="exportJSON">
                                 <span class="btn-icon">📄</span>
                                 Export JSON
                             </button>
-                            <button class="settings-btn" id="exportCSV">
+                            <button type="button" class="settings-btn" id="exportCSV">
                                 <span class="btn-icon">📊</span>
                                 Export CSV
                             </button>
                         </div>
                         
                         <div class="button-group">
-                            <button class="settings-btn warning" id="clearOldData">
+                            <button type="button" class="settings-btn warning" id="clearOldData">
                                 <span class="btn-icon">🧹</span>
                                 Clear Old Data
                             </button>
-                            <button class="settings-btn danger" id="clearAllData">
+                            <button type="button" class="settings-btn danger" id="clearAllData">
                                 <span class="btn-icon">⚠️</span>
                                 Clear All Data
                             </button>
