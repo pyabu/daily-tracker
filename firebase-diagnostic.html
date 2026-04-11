@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Diagnostic</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #667eea; margin-bottom: 10px; }
+        .status { padding: 15px; margin: 10px 0; border-radius: 5px; font-weight: bold; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .warning { background: #fff3cd; color: #856404; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover { opacity: 0.9; }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        .step {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #667eea;
+            border-radius: 5px;
+        }
+        .step h3 { margin-top: 0; color: #667eea; }
+        code {
+            background: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔥 Firebase Diagnostic Tool</h1>
+        <p>This tool will help diagnose why Firebase isn't storing data.</p>
+        
+        <div id="status"></div>
+        
+        <h2>Run Diagnostics:</h2>
+        <button onclick="runFullDiagnostic()">🔍 Run Full Diagnostic</button>
+        <button onclick="testWrite()">✍️ Test Write</button>
+        <button onclick="testRead()">📖 Test Read</button>
+        <button onclick="checkRules()">🔒 Check Rules</button>
+        
+        <div id="results"></div>
+        
+        <h2>Common Issues & Solutions:</h2>
+        
+        <div class="step">
+            <h3>Issue 1: Realtime Database Not Enabled</h3>
+            <p><strong>Symptom:</strong> Error says "Database not initialized" or "database not found"</p>
+            <p><strong>Solution:</strong></p>
+            <ol>
+                <li>Go to <a href="https://console.firebase.google.com/project/tracker-ed037/database" target="_blank">Firebase Console - Realtime Database</a></li>
+                <li>Click <strong>"Create Database"</strong></li>
+                <li>Choose your location</li>
+                <li>Select <strong>"Start in test mode"</strong></li>
+                <li>Click <strong>"Enable"</strong></li>
+                <li>Wait 1-2 minutes</li>
+            </ol>
+        </div>
+
+        <div class="step">
+            <h3>Issue 2: Permission Denied</h3>
+            <p><strong>Symptom:</strong> Error says "PERMISSION_DENIED"</p>
+            <p><strong>Solution:</strong></p>
+            <ol>
+                <li>Go to <a href="https://console.firebase.google.com/project/tracker-ed037/database/tracker-ed037-default-rtdb/rules" target="_blank">Firebase Console - Database Rules</a></li>
+                <li>Replace rules with:</li>
+            </ol>
+            <pre>{
+  "rules": {
+    ".read": true,
+    ".write": true
+  }
+}</pre>
+            <ol start="3">
+                <li>Click <strong>"Publish"</strong></li>
+            </ol>
+        </div>
+
+        <div class="step">
+            <h3>Issue 3: Network/CORS Error</h3>
+            <p><strong>Symptom:</strong> Error says "CORS" or "network error"</p>
+            <p><strong>Solution:</strong></p>
+            <ol>
+                <li>Make sure you're accessing via <code>http://localhost:8000</code></li>
+                <li>Don't open HTML file directly (file://)</li>
+                <li>Check internet connection</li>
+            </ol>
+        </div>
+
+        <h2>Quick Fix Steps:</h2>
+        <div class="info status">
+            <strong>Do these in order:</strong>
+            <ol>
+                <li>Click "Run Full Diagnostic" above</li>
+                <li>Read the error message carefully</li>
+                <li>Follow the solution for your specific error</li>
+                <li>Refresh this page and test again</li>
+            </ol>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+        import { 
+            getDatabase, 
+            ref, 
+            set, 
+            get, 
+            remove,
+            push
+        } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAa8elmr1nAzE-LM2tFDeuptj4Hb5Nvrvw",
+            authDomain: "tracker-ed037.firebaseapp.com",
+            projectId: "tracker-ed037",
+            storageBucket: "tracker-ed037.firebasestorage.app",
+            messagingSenderId: "910193491769",
+            appId: "1:910193491769:web:9dd9ea87e0707d1920f2e8",
+            measurementId: "G-G0XFTS2L4N",
+            databaseURL: "https://tracking-47d2e-default-rtdb.europe-west1.firebasedatabase.app"
+        };
+
+        let app, db;
+
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        function addResult(message, type = 'info') {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML += `<div class="status ${type}">${message}</div>`;
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '<h2>Diagnostic Results:</h2>';
+        }
+
+        window.runFullDiagnostic = async function() {
+            clearResults();
+            showStatus('🔄 Running full diagnostic...', 'info');
+            
+            // Step 1: Initialize Firebase
+            try {
+                app = initializeApp(firebaseConfig);
+                addResult('✅ Step 1: Firebase initialized successfully', 'success');
+            } catch (error) {
+                addResult(`❌ Step 1 FAILED: ${error.message}`, 'error');
+                addResult(`<strong>Solution:</strong> Check your Firebase config in firebase-config.js`, 'warning');
+                return;
+            }
+
+            // Step 2: Get Realtime Database instance
+            try {
+                db = getDatabase(app);
+                addResult('✅ Step 2: Realtime Database instance created', 'success');
+            } catch (error) {
+                addResult(`❌ Step 2 FAILED: ${error.message}`, 'error');
+                addResult(`<strong>Solution:</strong> Realtime Database may not be enabled. Enable it in Firebase Console.`, 'warning');
+                return;
+            }
+
+            // Step 3: Test Write
+            try {
+                const testData = {
+                    test: true,
+                    timestamp: Date.now(),
+                    message: 'Diagnostic test entry'
+                };
+                
+                const testRef = ref(db, 'sugar_entries/test_' + Date.now());
+                await set(testRef, testData);
+                addResult(`✅ Step 3: Write successful!`, 'success');
+                window.testKey = testRef.key;
+            } catch (error) {
+                addResult(`❌ Step 3 FAILED: ${error.code} - ${error.message}`, 'error');
+                
+                if (error.code === 'PERMISSION_DENIED') {
+                    addResult(`<strong>Solution:</strong> Update Realtime Database Rules to allow writes. See "Issue 2" above.`, 'warning');
+                } else {
+                    addResult(`<strong>Solution:</strong> Check console for details. Error code: ${error.code}`, 'warning');
+                }
+                return;
+            }
+
+            // Step 4: Test Read
+            try {
+                const entriesRef = ref(db, 'sugar_entries');
+                const snapshot = await get(entriesRef);
+                const count = snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
+                addResult(`✅ Step 4: Read successful! Found ${count} entries`, 'success');
+            } catch (error) {
+                addResult(`❌ Step 4 FAILED: ${error.code} - ${error.message}`, 'error');
+                return;
+            }
+
+            // Step 5: Cleanup
+            try {
+                if (window.testKey) {
+                    const testRef = ref(db, 'sugar_entries/' + window.testKey);
+                    await remove(testRef);
+                    addResult('✅ Step 5: Cleanup successful (test entry deleted)', 'success');
+                }
+            } catch (error) {
+                addResult(`⚠️ Step 5: Cleanup failed (not critical): ${error.message}`, 'warning');
+            }
+
+            showStatus('🎉 ALL TESTS PASSED! Firebase Realtime Database is working correctly!', 'success');
+            addResult(`<strong>✅ Your Firebase is configured correctly and ready to use!</strong>`, 'success');
+        };
+
+        window.testWrite = async function() {
+            clearResults();
+            showStatus('🔄 Testing write...', 'info');
+            
+            try {
+                if (!db) {
+                    app = initializeApp(firebaseConfig);
+                    db = getDatabase(app);
+                }
+                
+                const testData = {
+                    date: new Date().toISOString().split('T')[0],
+                    time: new Date().toTimeString().slice(0, 5),
+                    mealType: 'test',
+                    sugarLevel: 120,
+                    insulinDose: 5,
+                    notes: 'Test entry from diagnostic',
+                    createdAt: Date.now()
+                };
+                
+                const testRef = ref(db, 'sugar_entries/' + Date.now());
+                await set(testRef, testData);
+                addResult(`✅ Write successful!`, 'success');
+                addResult(`📝 Test data written to Realtime Database`, 'success');
+                showStatus('✅ Write test passed!', 'success');
+            } catch (error) {
+                addResult(`❌ Write failed: ${error.code}`, 'error');
+                addResult(`Error message: ${error.message}`, 'error');
+                
+                if (error.code === 'PERMISSION_DENIED') {
+                    addResult(`<strong>Fix:</strong> Update Realtime Database Rules (see Issue 2 above)`, 'warning');
+                }
+                
+                showStatus('❌ Write test failed', 'error');
+                console.error('Write error:', error);
+            }
+        };
+
+        window.testRead = async function() {
+            clearResults();
+            showStatus('🔄 Testing read...', 'info');
+            
+            try {
+                if (!db) {
+                    app = initializeApp(firebaseConfig);
+                    db = getDatabase(app);
+                }
+                
+                const entriesRef = ref(db, 'sugar_entries');
+                const snapshot = await get(entriesRef);
+                
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    const count = Object.keys(data).length;
+                    addResult(`✅ Read successful! Found ${count} entries`, 'success');
+                    
+                    Object.keys(data).slice(0, 5).forEach(key => {
+                        const entry = data[key];
+                        addResult(`📄 Entry: ${entry.mealType || 'N/A'} - ${entry.sugarLevel || 'N/A'} mg/dL`, 'info');
+                    });
+                } else {
+                    addResult('ℹ️ No entries found. Try "Test Write" first.', 'info');
+                }
+                
+                showStatus('✅ Read test passed!', 'success');
+            } catch (error) {
+                addResult(`❌ Read failed: ${error.code}`, 'error');
+                addResult(`Error message: ${error.message}`, 'error');
+                showStatus('❌ Read test failed', 'error');
+                console.error('Read error:', error);
+            }
+        };
+
+        window.checkRules = function() {
+            clearResults();
+            addResult('📋 Current Realtime Database Rules should be:', 'info');
+            addResult(`<pre>{
+  "rules": {
+    ".read": true,
+    ".write": true
+  }
+}</pre>`, 'info');
+            addResult(`<a href="https://console.firebase.google.com/project/tracker-ed037/database/tracker-ed037-default-rtdb/rules" target="_blank">Click here to check/update rules in Firebase Console</a>`, 'warning');
+        };
+
+        // Auto-run diagnostic on load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                runFullDiagnostic();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

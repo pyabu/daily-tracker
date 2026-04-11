@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Connection Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #667eea; }
+        .status {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .warning { background: #fff3cd; color: #856404; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover { opacity: 0.9; }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔥 Firebase Connection Test</h1>
+        
+        <div id="status"></div>
+        
+        <h2>Test Actions:</h2>
+        <button onclick="testConnection()">1. Test Connection</button>
+        <button onclick="testWrite()">2. Test Write</button>
+        <button onclick="testRead()">3. Test Read</button>
+        <button onclick="testDelete()">4. Test Delete</button>
+        
+        <h2>Results:</h2>
+        <div id="results"></div>
+        
+        <h2>Setup Instructions:</h2>
+        <div class="info status">
+            <strong>If you see errors, follow these steps:</strong>
+        </div>
+        <ol>
+            <li>Go to <a href="https://console.firebase.google.com/project/dailytracker-f3000" target="_blank">Firebase Console</a></li>
+            <li>Click <strong>Firestore Database</strong> in left menu</li>
+            <li>Click <strong>Create Database</strong></li>
+            <li>Choose <strong>Start in test mode</strong> (for now)</li>
+            <li>Select your region</li>
+            <li>Click <strong>Enable</strong></li>
+            <li>Wait 1-2 minutes for setup</li>
+            <li>Come back and click "Test Connection"</li>
+        </ol>
+        
+        <h2>Firestore Rules (After Testing):</h2>
+        <pre>rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}</pre>
+        <p><strong>Note:</strong> These rules allow anyone to read/write. For production, add authentication.</p>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+        import { 
+            getFirestore, 
+            collection, 
+            addDoc, 
+            getDocs, 
+            deleteDoc,
+            doc,
+            setDoc
+        } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyA1F9GzosxTobuFBs9NL7WmkbVISSy6q3E",
+            authDomain: "dailytracker-f3000.firebaseapp.com",
+            projectId: "dailytracker-f3000",
+            storageBucket: "dailytracker-f3000.firebasestorage.app",
+            messagingSenderId: "239907430273",
+            appId: "1:239907430273:web:bc4f8f1173cbbf866c1280",
+            measurementId: "G-BVTSH6Z7KT"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        function addResult(message, type = 'info') {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML += `<div class="status ${type}">${message}</div>`;
+        }
+
+        window.testConnection = async function() {
+            showStatus('🔄 Testing Firebase connection...', 'info');
+            document.getElementById('results').innerHTML = '';
+            
+            try {
+                // Try to access Firestore
+                const testRef = collection(db, 'connection_test');
+                addResult('✅ Firebase initialized successfully!', 'success');
+                addResult('✅ Firestore database accessible!', 'success');
+                addResult('📊 Project: dailytracker-f3000', 'info');
+                showStatus('✅ Connection successful! Firebase is ready.', 'success');
+            } catch (error) {
+                addResult('❌ Connection failed: ' + error.message, 'error');
+                showStatus('❌ Connection failed. Check console for details.', 'error');
+                console.error('Connection error:', error);
+            }
+        };
+
+        window.testWrite = async function() {
+            showStatus('🔄 Testing write operation...', 'info');
+            
+            try {
+                const testData = {
+                    date: new Date().toISOString().split('T')[0],
+                    time: new Date().toTimeString().slice(0, 5),
+                    mealType: 'test',
+                    sugarLevel: 120,
+                    insulinDose: 5,
+                    notes: 'Test entry',
+                    createdAt: new Date()
+                };
+                
+                const docRef = await addDoc(collection(db, 'sugar_entries'), testData);
+                addResult('✅ Write successful! Document ID: ' + docRef.id, 'success');
+                addResult('📝 Test data written to Firestore', 'success');
+                showStatus('✅ Write test passed!', 'success');
+                window.testDocId = docRef.id;
+            } catch (error) {
+                addResult('❌ Write failed: ' + error.message, 'error');
+                if (error.code === 'permission-denied') {
+                    addResult('⚠️ Permission denied. You need to set up Firestore rules!', 'warning');
+                }
+                showStatus('❌ Write test failed.', 'error');
+                console.error('Write error:', error);
+            }
+        };
+
+        window.testRead = async function() {
+            showStatus('🔄 Testing read operation...', 'info');
+            
+            try {
+                const querySnapshot = await getDocs(collection(db, 'sugar_entries'));
+                addResult(`✅ Read successful! Found ${querySnapshot.size} documents`, 'success');
+                
+                if (querySnapshot.size > 0) {
+                    querySnapshot.forEach((doc) => {
+                        const data = doc.data();
+                        addResult(`📄 Document: ${data.mealType} - ${data.sugarLevel} mg/dL`, 'info');
+                    });
+                } else {
+                    addResult('ℹ️ No documents found. Try "Test Write" first.', 'info');
+                }
+                
+                showStatus('✅ Read test passed!', 'success');
+            } catch (error) {
+                addResult('❌ Read failed: ' + error.message, 'error');
+                if (error.code === 'permission-denied') {
+                    addResult('⚠️ Permission denied. You need to set up Firestore rules!', 'warning');
+                }
+                showStatus('❌ Read test failed.', 'error');
+                console.error('Read error:', error);
+            }
+        };
+
+        window.testDelete = async function() {
+            showStatus('🔄 Testing delete operation...', 'info');
+            
+            try {
+                const querySnapshot = await getDocs(collection(db, 'sugar_entries'));
+                
+                if (querySnapshot.size === 0) {
+                    addResult('ℹ️ No documents to delete.', 'info');
+                    showStatus('ℹ️ No test data found.', 'info');
+                    return;
+                }
+                
+                let deleted = 0;
+                for (const document of querySnapshot.docs) {
+                    await deleteDoc(doc(db, 'sugar_entries', document.id));
+                    deleted++;
+                }
+                
+                addResult(`✅ Delete successful! Removed ${deleted} test documents`, 'success');
+                showStatus('✅ Delete test passed!', 'success');
+            } catch (error) {
+                addResult('❌ Delete failed: ' + error.message, 'error');
+                showStatus('❌ Delete test failed.', 'error');
+                console.error('Delete error:', error);
+            }
+        };
+
+        // Auto-test on load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                testConnection();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
