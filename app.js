@@ -754,6 +754,7 @@ function getSugarEmoji(sugar) {
 }
 
 function capitalize(str) {
+    if (!str || typeof str !== 'string') return '';
     return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
@@ -835,40 +836,104 @@ class WhatsAppManager {
         return encodeURIComponent(report);
     }
 
-    sendToWhatsApp(number = this.settings.number) {
-        // Validate number
+    /**
+     * Opens WhatsApp with prefilled text. `wa.me` cannot press Send for you — user taps Send in WhatsApp.
+     * @param {string} number
+     * @param {{ silent?: boolean, encodedMessage?: string }} options - encodedMessage skips generateDailyReport
+     */
+    sendToWhatsApp(number = this.settings.number, options = {}) {
         if (!number || number.trim() === '') {
-            showToast('⚠️ Please enter a WhatsApp number in Settings', 'error');
+            if (!options.silent) showToast('⚠️ Please enter a WhatsApp number in Settings', 'error');
             return false;
         }
 
-        // Clean and validate number format
         const cleanNumber = number.replace(/[^0-9+]/g, '');
         
         if (!cleanNumber.startsWith('+')) {
-            showToast('⚠️ Number must start with + and country code (e.g., +1234567890)', 'error');
+            if (!options.silent) showToast('⚠️ Number must start with + and country code (e.g., +1234567890)', 'error');
             return false;
         }
 
         if (cleanNumber.length < 10) {
-            showToast('⚠️ Invalid phone number format', 'error');
+            if (!options.silent) showToast('⚠️ Invalid phone number format', 'error');
             return false;
         }
 
         try {
-            const message = this.generateDailyReport();
-            const finalNumber = cleanNumber.substring(1); // Remove + for WhatsApp API
+            const message = options.encodedMessage != null ? options.encodedMessage : this.generateDailyReport();
+            const finalNumber = cleanNumber.substring(1);
             const url = `https://wa.me/${finalNumber}?text=${message}`;
-            
-            // Open WhatsApp
-            window.open(url, '_blank');
-            showToast('✅ Opening WhatsApp...', 'success');
+            this._openWhatsAppUrl(url);
+            if (!options.silent) {
+                showToast('✅ Opening WhatsApp — tap Send there to deliver', 'success');
+            }
             return true;
         } catch (error) {
             console.error('WhatsApp send error:', error);
-            showToast('❌ Failed to open WhatsApp', 'error');
+            if (!options.silent) showToast('❌ Failed to open WhatsApp', 'error');
             return false;
         }
+    }
+
+    /** Open WhatsApp in a new tab (same as tapping a link; helps some browsers vs raw window.open from timers). */
+    _openWhatsAppUrl(url) {
+        const a = document.createElement('a');
+        a.href = url;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        a.setAttribute('aria-hidden', 'true');
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+
+    _minutesFromMidnight(hm) {
+        const [h, m] = (hm || '00:00').split(':').map((x) => parseInt(x, 10));
+        return (h || 0) * 60 + (m || 0);
+    }
+
+    _nowHM() {
+        const now = new Date();
+        return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    }
+
+    /**
+     * Once per day after the scheduled time: open WhatsApp with the daily report prefilled.
+     */
+    maybeSendScheduledDailyReport() {
+        if (!this.settings.enabled || !this.settings.number?.trim()) return;
+
+        const today = new Date().toISOString().split('T')[0];
+        if (localStorage.getItem('lastWhatsAppSend') === today) return;
+
+        const sched = (this.settings.time || '21:00').slice(0, 5);
+        if (this._minutesFromMidnight(this._nowHM()) < this._minutesFromMidnight(sched)) return;
+
+        const ok = this.sendToWhatsApp(this.settings.number, { silent: true });
+        if (ok) {
+            localStorage.setItem('lastWhatsAppSend', today);
+            showToast('📱 Auto daily report: WhatsApp opened — tap Send to finish', 'success');
+        }
+    }
+
+    /**
+     * Opens WhatsApp with a nudge when a meal slot was not logged (reminder flow).
+     */
+    sendMissedReadingReminder(mealLabel, number = this.settings.number) {
+        if (!number || String(number).trim() === '') {
+            showToast('⚠️ Add your WhatsApp number above for missed-entry alerts', 'error');
+            return false;
+        }
+        const cleanNumber = number.replace(/[^0-9+]/g, '');
+        if (!cleanNumber.startsWith('+') || cleanNumber.length < 10) {
+            showToast('⚠️ WhatsApp number must include + and country code', 'error');
+            return false;
+        }
+        const today = new Date().toISOString().split('T')[0];
+        const text = `⏰ *Daily Health Tracker*\n\nYou have not logged your *${mealLabel}* glucose reading today (${today}).\n\nPlease open your tracker and add an entry when you can.`;
+        const url = `https://wa.me/${cleanNumber.substring(1)}?text=${encodeURIComponent(text)}`;
+        this._openWhatsAppUrl(url);
+        return true;
     }
 
     testConnection() {
@@ -890,50 +955,145 @@ class WhatsAppManager {
         const testMessage = encodeURIComponent('🧪 Test message from Daily Health Tracker\n\nIf you received this, WhatsApp integration is working! ✅');
         const finalNumber = cleanNumber.substring(1);
         const url = `https://wa.me/${finalNumber}?text=${testMessage}`;
-        
-        window.open(url, '_blank');
-        showToast('✅ Test message sent! Check WhatsApp', 'success');
+        this._openWhatsAppUrl(url);
+        showToast('✅ Opening WhatsApp — tap Send to test', 'success');
     }
 
     checkScheduledSend() {
-        if (!this.settings.enabled || !this.settings.number) return;
-
-        setInterval(() => {
-            const now = new Date();
-            const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-            
-            if (currentTime === this.settings.time) {
-                const lastSent = localStorage.getItem('lastWhatsAppSend');
-                const today = new Date().toISOString().split('T')[0];
-                
-                if (lastSent !== today) {
-                    this.sendToWhatsApp();
-                    localStorage.setItem('lastWhatsAppSend', today);
-                    showToast('📱 Daily report sent to WhatsApp!', 'success');
-                }
-            }
-        }, 60000); // Check every minute
+        const tick = () => this.maybeSendScheduledDailyReport();
+        setInterval(tick, 30000);
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') tick();
+        });
+        window.addEventListener('focus', tick);
+        tick();
     }
 }
 
-// Reminder Manager (simplified)
+// Reminder Manager — time-based checks; optional push + WhatsApp if meal not logged
 class ReminderManager {
     constructor() {
         this.settings = this.loadSettings();
+        this._watchId = null;
+        if (this.settings.enabled) {
+            this.startWatch();
+        }
     }
 
-    loadSettings() {
-        const stored = localStorage.getItem('reminderSettings');
-        return stored ? JSON.parse(stored) : {
+    defaultSettings() {
+        return {
             times: ['08:00', '14:00', '20:00'],
-            enabled: false
+            enabled: false,
+            pushEnabled: false,
+            whatsappMissedEnabled: false,
+            mealSlots: ['morning', 'afternoon', 'evening']
         };
     }
 
-    saveSettings(settings) {
-        this.settings = settings;
-        localStorage.setItem('reminderSettings', JSON.stringify(settings));
+    loadSettings() {
+        const defaults = this.defaultSettings();
+        try {
+            const stored = localStorage.getItem('reminderSettings');
+            if (!stored) return { ...defaults };
+            return { ...defaults, ...JSON.parse(stored) };
+        } catch {
+            return { ...defaults };
+        }
     }
+
+    saveSettings(partial) {
+        this.settings = { ...this.settings, ...partial };
+        localStorage.setItem('reminderSettings', JSON.stringify(this.settings));
+        if (this.settings.enabled) {
+            this.startWatch();
+        } else {
+            this.stopWatch();
+        }
+    }
+
+    stopWatch() {
+        if (this._watchId != null) {
+            clearInterval(this._watchId);
+            this._watchId = null;
+        }
+    }
+
+    startWatch() {
+        this.stopWatch();
+        if (!this.settings.enabled) return;
+        this._watchId = setInterval(() => this.tick(), 30000);
+        this.tick();
+    }
+
+    getCurrentTimeHM() {
+        const now = new Date();
+        return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    }
+
+    tick() {
+        if (!this.settings.enabled) return;
+
+        const current = this.getCurrentTimeHM();
+        const today = new Date().toISOString().split('T')[0];
+        const slots = this.settings.mealSlots && this.settings.mealSlots.length === 3
+            ? this.settings.mealSlots
+            : ['morning', 'afternoon', 'evening'];
+
+        this.settings.times.forEach((reminderTime, slotIndex) => {
+            if (reminderTime !== current) return;
+
+            const storageKey = `missRemind_${today}_${slotIndex}`;
+            if (localStorage.getItem(storageKey)) return;
+
+            const mealType = slots[slotIndex] || 'morning';
+            const logged = data.getTodayEntries().some(e => e.mealType === mealType);
+            if (logged) return;
+
+            localStorage.setItem(storageKey, '1');
+
+            const mealLabel = capitalize(mealType);
+            const title = 'Log your glucose';
+            const body = `You have not logged your ${mealLabel} reading today. Open Daily Health Tracker to add it.`;
+
+            if (this.settings.pushEnabled && typeof Notification !== 'undefined') {
+                if (Notification.permission === 'granted') {
+                    try {
+                        const n = new Notification(title, {
+                            body,
+                            tag: `dht-${mealType}-${today}`,
+                            renotify: true
+                        });
+                        n.onclick = () => {
+                            window.focus();
+                            n.close();
+                        };
+                    } catch (err) {
+                        console.warn('Notification error:', err);
+                    }
+                }
+            }
+
+            if (this.settings.whatsappMissedEnabled) {
+                whatsappManager.sendMissedReadingReminder(mealLabel);
+            }
+
+            showToast(`⏰ ${mealLabel} reading not logged — check notification or WhatsApp`, 'error');
+        });
+    }
+}
+
+async function requestBrowserNotificationPermission() {
+    if (typeof Notification === 'undefined') {
+        showToast('Notifications are not supported in this browser', 'error');
+        return 'unsupported';
+    }
+    if (Notification.permission === 'granted') return 'granted';
+    if (Notification.permission === 'denied') {
+        showToast('Notifications are blocked. Enable them in browser settings.', 'error');
+        return 'denied';
+    }
+    const result = await Notification.requestPermission();
+    return result;
 }
 
 // Contact Manager (Enhanced with Multiple Contacts)
@@ -1139,6 +1299,10 @@ function loadAllSettings() {
     document.getElementById('reminder2').value = reminderManager.settings.times[1];
     document.getElementById('reminder3').value = reminderManager.settings.times[2];
     document.getElementById('remindersEnabled').checked = reminderManager.settings.enabled;
+    const pushEl = document.getElementById('reminderPushEnabled');
+    const waEl = document.getElementById('reminderWhatsAppMissed');
+    if (pushEl) pushEl.checked = !!reminderManager.settings.pushEnabled;
+    if (waEl) waEl.checked = !!reminderManager.settings.whatsappMissedEnabled;
     
     const reminderBadge = document.getElementById('reminderStatus');
     if (reminderBadge) {
@@ -1224,6 +1388,19 @@ function renderContactsList() {
     `).join('');
 }
 
+function getReminderSettingsFromDom() {
+    return {
+        times: [
+            document.getElementById('reminder1').value,
+            document.getElementById('reminder2').value,
+            document.getElementById('reminder3').value
+        ],
+        enabled: document.getElementById('remindersEnabled').checked,
+        pushEnabled: document.getElementById('reminderPushEnabled')?.checked ?? false,
+        whatsappMissedEnabled: document.getElementById('reminderWhatsAppMissed')?.checked ?? false
+    };
+}
+
 function setupContactsListDelegation() {
     const container = document.getElementById('contactsList');
     if (!container) return;
@@ -1301,6 +1478,9 @@ function setupNewFeatureListeners() {
             enabled: e.target.checked
         });
         
+        if (e.target.checked) {
+            whatsappManager.maybeSendScheduledDailyReport();
+        }
         showToast(e.target.checked ? '✅ Auto-send enabled!' : '❌ Auto-send disabled', 'success');
     });
 
@@ -1318,27 +1498,15 @@ function setupNewFeatureListeners() {
     // Reminders - Save times on change
     ['reminder1', 'reminder2', 'reminder3'].forEach(id => {
         document.getElementById(id).addEventListener('change', () => {
-            reminderManager.saveSettings({
-                times: [
-                    document.getElementById('reminder1').value,
-                    document.getElementById('reminder2').value,
-                    document.getElementById('reminder3').value
-                ],
-                enabled: document.getElementById('remindersEnabled').checked
-            });
+            reminderManager.saveSettings(getReminderSettingsFromDom());
         });
     });
 
     // Reminders - Toggle
     document.getElementById('remindersEnabled').addEventListener('change', (e) => {
-        reminderManager.saveSettings({
-            times: [
-                document.getElementById('reminder1').value,
-                document.getElementById('reminder2').value,
-                document.getElementById('reminder3').value
-            ],
-            enabled: e.target.checked
-        });
+        const state = getReminderSettingsFromDom();
+        state.enabled = e.target.checked;
+        reminderManager.saveSettings(state);
         
         const badge = document.getElementById('reminderStatus');
         if (badge) {
@@ -1350,7 +1518,34 @@ function setupNewFeatureListeners() {
             }
         }
         
-        showToast(e.target.checked ? '✅ Reminders enabled! You will receive 3 alerts per day.' : '❌ Reminders disabled', 'success');
+        showToast(e.target.checked ? '✅ Reminders on — empty slots can trigger notification / WhatsApp.' : '❌ Reminders disabled', 'success');
+    });
+
+    document.getElementById('reminderPushEnabled')?.addEventListener('change', async (e) => {
+        if (e.target.checked) {
+            const perm = await requestBrowserNotificationPermission();
+            if (perm !== 'granted') {
+                e.target.checked = false;
+                reminderManager.saveSettings({ ...getReminderSettingsFromDom(), pushEnabled: false });
+                return;
+            }
+        }
+        reminderManager.saveSettings(getReminderSettingsFromDom());
+        showToast(e.target.checked ? '✅ Browser notifications enabled' : 'Browser notifications off', 'success');
+    });
+
+    document.getElementById('reminderWhatsAppMissed')?.addEventListener('change', (e) => {
+        if (e.target.checked) {
+            const num = document.getElementById('whatsappNumber').value;
+            if (!num || !num.trim().startsWith('+')) {
+                e.target.checked = false;
+                showToast('⚠️ Save a WhatsApp number with +country code first', 'error');
+                reminderManager.saveSettings({ ...getReminderSettingsFromDom(), whatsappMissedEnabled: false });
+                return;
+            }
+        }
+        reminderManager.saveSettings(getReminderSettingsFromDom());
+        showToast(e.target.checked ? '✅ WhatsApp nudges enabled' : 'WhatsApp nudges off', 'success');
     });
 
     // Contact - Add

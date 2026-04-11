@@ -319,18 +319,18 @@
                         <span class="card-badge" id="whatsappStatus">Disabled</span>
                     </div>
                     <div class="card-body">
-                        <p class="section-desc">Automatically send daily report to WhatsApp</p>
+                        <p class="section-desc">At the time you choose, the app opens WhatsApp with today’s report already typed. You only need to tap Send in WhatsApp. Fully automatic delivery (no tap) requires WhatsApp Business API on a server, which this web app does not use.</p>
                         
                         <div class="form-group">
                             <label>WhatsApp Number (with country code)</label>
                             <input type="tel" id="whatsappNumber" placeholder="+1234567890" class="form-input" />
-                            <small class="form-hint">Example: +1234567890 (USA), +919876543210 (India)</small>
+                            <small class="form-hint">Use the same number as your WhatsApp. Example: +1234567890 (USA), +919876543210 (India)</small>
                         </div>
                         
                         <div class="form-group">
                             <label>Send Time</label>
                             <input type="time" id="whatsappTime" value="21:00" class="form-input" />
-                            <small class="form-hint">Daily report will be sent at this time</small>
+                            <small class="form-hint">After this time each day, we open WhatsApp once with the report (keep this page open or open the app later that day to catch it). Uses your device’s local time.</small>
                         </div>
                         
                         <div class="toggle-group">
@@ -361,7 +361,7 @@
                         <span class="card-badge" id="reminderStatus">Disabled</span>
                     </div>
                     <div class="card-body">
-                        <p class="section-desc">Get 3 reminders per day to track your sugar levels</p>
+                        <p class="section-desc">At each time below, we check whether you logged the matching meal today. If it is still missing, you can get a browser notification and/or a WhatsApp message to your own number (the one in WhatsApp Auto-Send above).</p>
                         
                         <div class="reminder-times">
                             <div class="form-group">
@@ -385,6 +385,24 @@
                                 <span>Enable Reminders</span>
                             </label>
                         </div>
+                        
+                        <p class="section-desc reminder-advanced-desc">When a reminder time passes and the slot is still empty:</p>
+                        <div class="toggle-group">
+                            <label class="toggle-label">
+                                <input type="checkbox" id="reminderPushEnabled" />
+                                <span class="toggle-slider"></span>
+                                <span>Browser push notification</span>
+                            </label>
+                        </div>
+                        <small class="form-hint reminder-hint">Allow notifications when your browser asks. Works best if you keep this tab open; true background push needs hosting setup.</small>
+                        <div class="toggle-group">
+                            <label class="toggle-label">
+                                <input type="checkbox" id="reminderWhatsAppMissed" />
+                                <span class="toggle-slider"></span>
+                                <span>WhatsApp alert to my number</span>
+                            </label>
+                        </div>
+                        <small class="form-hint reminder-hint">Opens WhatsApp with a reminder text. Requires a valid WhatsApp number saved above.</small>
                     </div>
                 </div>
 

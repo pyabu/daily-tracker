@@ -1026,6 +1026,18 @@ body.profile-required .sidebar-overlay {
     margin-bottom: 16px;
 }
 
+.reminder-advanced-desc {
+    margin-top: 20px;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.reminder-hint {
+    margin-bottom: 14px;
+    display: block;
+}
+
 /* Responsive - Additional Rules */
 @media (max-width: 768px) {
     .stats-grid {
