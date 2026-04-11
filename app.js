@@ -625,8 +625,8 @@ function renderHistory() {
             datasets: [{
                 label: 'Average Blood Sugar',
                 data: last7Days.map(d => d.avgSugar),
-                borderColor: '#667eea',
-                backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                borderColor: '#0d9488',
+                backgroundColor: 'rgba(13, 148, 136, 0.12)',
                 tension: 0.4,
                 fill: true
             }]

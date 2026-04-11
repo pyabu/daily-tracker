@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Daily Health Tracker - Smart Health Management</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -66,11 +69,11 @@
                 </div>
             </div>
             <div class="top-bar-right">
-                <div class="user-greeting" id="userGreeting" style="margin-right: 20px; display: flex; align-items: center; gap: 10px;">
-                    <span style="font-size: 24px;">👤</span>
-                    <div>
-                        <div style="font-weight: 600; font-size: 14px;" id="displayUserName">User</div>
-                        <div style="font-size: 12px; color: #666;" id="displayUserAge">Age: --</div>
+                <div class="user-greeting" id="userGreeting">
+                    <span class="user-greeting-avatar" aria-hidden="true">👤</span>
+                    <div class="user-greeting-text">
+                        <div class="user-greeting-name" id="displayUserName">User</div>
+                        <div class="user-greeting-age" id="displayUserAge">Age: --</div>
                     </div>
                 </div>
                 <div class="date-badge" id="currentDate"></div>
