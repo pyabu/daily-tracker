@@ -86,20 +86,47 @@ class TrackerData {
         return this.entries.filter(e => e.date === date);
     }
 
-    exportToJSON() {
-        const dataStr = JSON.stringify({
-            entries: this.entries,
-            exportDate: new Date().toISOString(),
-            version: '2.0'
-        }, null, 2);
-        
-        const blob = new Blob([dataStr], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `diabetes-tracker-${new Date().toISOString().split('T')[0]}.json`;
-        link.click();
-        URL.revokeObjectURL(url);
+    exportToExcel() {
+        if (this.entries.length === 0) {
+            showToast('⚠️ No data to export', 'error');
+            return;
+        }
+
+        // Prepare data for Excel
+        const excelData = this.entries.map(e => ({
+            'Date': e.date,
+            'Time': e.time,
+            'Meal Type': this.capitalize(e.mealType),
+            'Sugar Level (mg/dL)': e.sugarLevel !== null ? e.sugarLevel : 'Not Taken',
+            'Insulin (units)': e.insulinDose !== null ? e.insulinDose : 'Not Taken',
+            'Notes': e.notes || ''
+        }));
+
+        // Create workbook and worksheet
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.json_to_sheet(excelData);
+
+        // Set column widths
+        ws['!cols'] = [
+            { wch: 12 },  // Date
+            { wch: 8 },   // Time
+            { wch: 12 },  // Meal Type
+            { wch: 20 },  // Sugar Level
+            { wch: 15 },  // Insulin
+            { wch: 40 }   // Notes
+        ];
+
+        // Add worksheet to workbook
+        XLSX.utils.book_append_sheet(wb, ws, 'Diabetes Tracker');
+
+        // Generate Excel file
+        const fileName = `diabetes-tracker-${new Date().toISOString().split('T')[0]}.xlsx`;
+        XLSX.writeFile(wb, fileName);
+    }
+
+    capitalize(str) {
+        if (!str || typeof str !== 'string') return '';
+        return str.charAt(0).toUpperCase() + str.slice(1);
     }
 
     exportToCSV() {
@@ -107,9 +134,9 @@ class TrackerData {
         const rows = this.entries.map(e => [
             e.date,
             e.time,
-            e.mealType,
-            e.sugarLevel,
-            e.insulinDose,
+            this.capitalize(e.mealType),
+            e.sugarLevel !== null ? e.sugarLevel : 'Not Taken',
+            e.insulinDose !== null ? e.insulinDose : 'Not Taken',
             `"${(e.notes || '').replace(/"/g, '""')}"`
         ]);
         
@@ -345,6 +372,7 @@ function navigateTo(pageName) {
         'add-entry': 'Add New Entry',
         'history': 'History & Trends',
         'insights': 'Insights & Patterns',
+        'diet-guide': 'Diet Guide',
         'settings': 'Settings'
     };
     document.getElementById('pageTitle').textContent = titles[pageName] || pageName;
@@ -352,12 +380,42 @@ function navigateTo(pageName) {
     // Load page-specific content
     if (pageName === 'history') renderHistory();
     if (pageName === 'insights') renderInsights();
+    if (pageName === 'diet-guide') renderDietGuide();
 }
 
 // Form Handlers
 function setupFormHandlers() {
     document.getElementById('quickEntryForm').addEventListener('submit', handleFormSubmit);
     document.getElementById('sugarLevel').addEventListener('input', updateSugarIndicator);
+    
+    // Not Taken checkboxes
+    const sugarNotTaken = document.getElementById('sugarNotTaken');
+    const insulinNotTaken = document.getElementById('insulinNotTaken');
+    const sugarInput = document.getElementById('sugarLevel');
+    const insulinInput = document.getElementById('insulinDose');
+    
+    sugarNotTaken.addEventListener('change', (e) => {
+        if (e.target.checked) {
+            sugarInput.value = '';
+            sugarInput.disabled = true;
+            sugarInput.removeAttribute('required');
+            document.getElementById('sugarIndicator').textContent = '';
+            document.getElementById('sugarIndicator').style.background = '';
+        } else {
+            sugarInput.disabled = false;
+            sugarInput.setAttribute('required', 'required');
+        }
+    });
+    
+    insulinNotTaken.addEventListener('change', (e) => {
+        if (e.target.checked) {
+            insulinInput.value = '';
+            insulinInput.disabled = true;
+        } else {
+            insulinInput.disabled = false;
+            insulinInput.value = '0';
+        }
+    });
     
     // Quick actions
     document.getElementById('whatsappQuickSend')?.addEventListener('click', () => {
@@ -377,8 +435,8 @@ function setupFormHandlers() {
             setProfileGate(true);
             return;
         }
-        data.exportToCSV();
-        showToast('📊 Data exported successfully!', 'success');
+        data.exportToExcel();
+        showToast('📊 Data exported to Excel successfully!', 'success');
     });
 }
 
@@ -398,24 +456,45 @@ function handleFormSubmit(e) {
         return;
     }
     
+    const sugarNotTaken = document.getElementById('sugarNotTaken').checked;
+    const insulinNotTaken = document.getElementById('insulinNotTaken').checked;
+    const sugarValue = document.getElementById('sugarLevel').value;
+    const insulinValue = document.getElementById('insulinDose').value;
+    
+    // Validation: At least one value must be provided
+    if (sugarNotTaken && insulinNotTaken) {
+        showToast('⚠️ Please provide at least sugar or insulin information', 'error');
+        return;
+    }
+    
+    if (!sugarNotTaken && !sugarValue) {
+        showToast('⚠️ Please enter sugar level or check "Not Taken"', 'error');
+        return;
+    }
+    
     const entry = {
         date: document.getElementById('entryDate').value,
         time: document.getElementById('entryTime').value,
         mealType: mealInput.value,
-        sugarLevel: parseInt(document.getElementById('sugarLevel').value),
-        insulinDose: parseFloat(document.getElementById('insulinDose').value) || 0,
+        sugarLevel: sugarNotTaken ? null : parseInt(sugarValue),
+        insulinDose: insulinNotTaken ? null : (parseFloat(insulinValue) || 0),
         notes: document.getElementById('notes').value
     };
 
     data.addEntry(entry);
     showToast('✅ Entry saved and synced to cloud!', 'success');
     
-    // Check for alerts
-    contactManager.checkLowSugar(entry.sugarLevel);
-    contactManager.checkHighSugar(entry.sugarLevel);
+    // Check for alerts (only if sugar was taken)
+    if (entry.sugarLevel !== null) {
+        contactManager.checkLowSugar(entry.sugarLevel);
+        contactManager.checkHighSugar(entry.sugarLevel);
+    }
     
     // Reset form
     document.getElementById('quickEntryForm').reset();
+    document.getElementById('sugarLevel').disabled = false;
+    document.getElementById('insulinDose').disabled = false;
+    document.getElementById('sugarLevel').setAttribute('required', 'required');
     const now = new Date();
     document.getElementById('entryDate').value = now.toISOString().split('T')[0];
     document.getElementById('entryTime').value = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
@@ -490,14 +569,25 @@ function calculateStats(entries) {
         return { score: '--', avgSugar: 0, entries: 0, totalInsulin: 0 };
     }
 
-    const avgSugar = Math.round(entries.reduce((sum, e) => sum + e.sugarLevel, 0) / entries.length);
-    const totalInsulin = entries.reduce((sum, e) => sum + e.insulinDose, 0);
+    // Filter out null values for calculations
+    const sugarEntries = entries.filter(e => e.sugarLevel !== null);
+    const insulinEntries = entries.filter(e => e.insulinDose !== null);
     
-    const inRange = entries.filter(e => e.sugarLevel >= 70 && e.sugarLevel <= 140).length;
-    const score = Math.round((inRange / entries.length) * 100);
+    const avgSugar = sugarEntries.length > 0 
+        ? Math.round(sugarEntries.reduce((sum, e) => sum + e.sugarLevel, 0) / sugarEntries.length)
+        : 0;
+    
+    const totalInsulin = insulinEntries.length > 0
+        ? insulinEntries.reduce((sum, e) => sum + e.insulinDose, 0)
+        : 0;
+    
+    const inRange = sugarEntries.filter(e => e.sugarLevel >= 70 && e.sugarLevel <= 140).length;
+    const score = sugarEntries.length > 0 
+        ? Math.round((inRange / sugarEntries.length) * 100)
+        : 0;
     
     return {
-        score: `${score}/100`,
+        score: sugarEntries.length > 0 ? `${score}/100` : '--',
         avgSugar,
         entries: entries.length,
         totalInsulin: totalInsulin.toFixed(1)
@@ -513,7 +603,13 @@ function updateTimeline(entries) {
     timeline.innerHTML = mealTypes.map(meal => {
         const entry = entries.find(e => e.mealType === meal);
         const completed = entry ? 'completed' : '';
-        const status = entry ? `${entry.sugarLevel} mg/dL • ${entry.insulinDose}u` : 'Not logged';
+        
+        let status = 'Not logged';
+        if (entry) {
+            const sugarText = entry.sugarLevel !== null ? `${entry.sugarLevel} mg/dL` : '<span class="not-taken-badge">Not Taken</span>';
+            const insulinText = entry.insulinDose !== null ? `${entry.insulinDose}u` : '<span class="not-taken-badge">Not Taken</span>';
+            status = `${sugarText} • ${insulinText}`;
+        }
         
         return `
             <div class="timeline-item ${completed}">
@@ -535,23 +631,33 @@ function renderRecentEntries(entries) {
         return;
     }
 
-    container.innerHTML = entries.slice(0, 5).map(entry => `
-        <div class="entry-card">
-            <div class="entry-header">
-                <span class="entry-time">${formatTime(entry.time)}</span>
-                <span class="entry-meal">${getMealIcon(entry.mealType)} ${capitalize(entry.mealType)}</span>
-            </div>
-            <div class="entry-details">
-                <div class="entry-detail">
-                    <strong>Sugar:</strong> ${entry.sugarLevel} mg/dL ${getSugarEmoji(entry.sugarLevel)}
+    container.innerHTML = entries.slice(0, 5).map(entry => {
+        const sugarDisplay = entry.sugarLevel !== null 
+            ? `${entry.sugarLevel} mg/dL ${getSugarEmoji(entry.sugarLevel)}`
+            : '<span class="not-taken-badge">Not Taken</span>';
+        
+        const insulinDisplay = entry.insulinDose !== null
+            ? `${entry.insulinDose} units`
+            : '<span class="not-taken-badge">Not Taken</span>';
+        
+        return `
+            <div class="entry-card">
+                <div class="entry-header">
+                    <span class="entry-time">${formatTime(entry.time)}</span>
+                    <span class="entry-meal">${getMealIcon(entry.mealType)} ${capitalize(entry.mealType)}</span>
                 </div>
-                <div class="entry-detail">
-                    <strong>Insulin:</strong> ${entry.insulinDose} units
+                <div class="entry-details">
+                    <div class="entry-detail">
+                        <strong>Sugar:</strong> ${sugarDisplay}
+                    </div>
+                    <div class="entry-detail">
+                        <strong>Insulin:</strong> ${insulinDisplay}
+                    </div>
                 </div>
+                ${entry.notes ? `<div class="entry-notes">📝 ${entry.notes}</div>` : ''}
             </div>
-            ${entry.notes ? `<div class="entry-notes">📝 ${entry.notes}</div>` : ''}
-        </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 function getFilteredHistoryEntries(query) {
@@ -575,23 +681,33 @@ function renderHistoryList(entries) {
         return;
     }
     
-    historyList.innerHTML = entries.map(entry => `
-        <div class="entry-card">
-            <div class="entry-header">
-                <span class="entry-time">${entry.date} ${formatTime(entry.time)}</span>
-                <span class="entry-meal">${getMealIcon(entry.mealType)} ${capitalize(entry.mealType)}</span>
-            </div>
-            <div class="entry-details">
-                <div class="entry-detail">
-                    <strong>Sugar:</strong> ${entry.sugarLevel} mg/dL
+    historyList.innerHTML = entries.map(entry => {
+        const sugarDisplay = entry.sugarLevel !== null 
+            ? `${entry.sugarLevel} mg/dL`
+            : '<span class="not-taken-badge">Not Taken</span>';
+        
+        const insulinDisplay = entry.insulinDose !== null
+            ? `${entry.insulinDose} units`
+            : '<span class="not-taken-badge">Not Taken</span>';
+        
+        return `
+            <div class="entry-card">
+                <div class="entry-header">
+                    <span class="entry-time">${entry.date} ${formatTime(entry.time)}</span>
+                    <span class="entry-meal">${getMealIcon(entry.mealType)} ${capitalize(entry.mealType)}</span>
                 </div>
-                <div class="entry-detail">
-                    <strong>Insulin:</strong> ${entry.insulinDose} units
+                <div class="entry-details">
+                    <div class="entry-detail">
+                        <strong>Sugar:</strong> ${sugarDisplay}
+                    </div>
+                    <div class="entry-detail">
+                        <strong>Insulin:</strong> ${insulinDisplay}
+                    </div>
                 </div>
+                ${entry.notes ? `<div class="entry-notes">📝 ${escapeHtml(entry.notes)}</div>` : ''}
             </div>
-            ${entry.notes ? `<div class="entry-notes">📝 ${escapeHtml(entry.notes)}</div>` : ''}
-        </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 function escapeHtml(text) {
@@ -657,8 +773,11 @@ function getLast7Days() {
         date.setDate(date.getDate() - i);
         const dateStr = date.toISOString().split('T')[0];
         const entries = data.getEntriesByDate(dateStr);
-        const avgSugar = entries.length > 0 
-            ? Math.round(entries.reduce((sum, e) => sum + e.sugarLevel, 0) / entries.length)
+        
+        // Filter out entries where sugar was not taken
+        const sugarEntries = entries.filter(e => e.sugarLevel !== null);
+        const avgSugar = sugarEntries.length > 0 
+            ? Math.round(sugarEntries.reduce((sum, e) => sum + e.sugarLevel, 0) / sugarEntries.length)
             : null;
         
         days.push({
@@ -819,18 +938,31 @@ class WhatsAppManager {
             const icon = getMealIcon(entry.mealType);
             const meal = capitalize(entry.mealType);
             report += `⏰ ${entry.time} - ${icon} ${meal}\n`;
-            report += `🩸 Sugar: ${entry.sugarLevel} mg/dL\n`;
-            report += `💉 Insulin: ${entry.insulinDose} units\n`;
+            
+            const sugarText = entry.sugarLevel !== null ? `${entry.sugarLevel} mg/dL` : 'Not Taken';
+            const insulinText = entry.insulinDose !== null ? `${entry.insulinDose} units` : 'Not Taken';
+            
+            report += `🩸 Sugar: ${sugarText}\n`;
+            report += `💉 Insulin: ${insulinText}\n`;
             if (entry.notes) report += `📝 ${entry.notes}\n`;
             report += `\n`;
         });
 
-        const avgSugar = Math.round(todayEntries.reduce((sum, e) => sum + e.sugarLevel, 0) / todayEntries.length);
-        const totalInsulin = todayEntries.reduce((sum, e) => sum + e.insulinDose, 0).toFixed(1);
+        // Calculate averages only from non-null values
+        const sugarEntries = todayEntries.filter(e => e.sugarLevel !== null);
+        const insulinEntries = todayEntries.filter(e => e.insulinDose !== null);
+        
+        const avgSugar = sugarEntries.length > 0
+            ? Math.round(sugarEntries.reduce((sum, e) => sum + e.sugarLevel, 0) / sugarEntries.length)
+            : 'N/A';
+        
+        const totalInsulin = insulinEntries.length > 0
+            ? insulinEntries.reduce((sum, e) => sum + e.insulinDose, 0).toFixed(1)
+            : 'N/A';
         
         report += `📈 *Summary*\n`;
-        report += `Average Sugar: ${avgSugar} mg/dL\n`;
-        report += `Total Insulin: ${totalInsulin} units\n`;
+        report += `Average Sugar: ${avgSugar}${typeof avgSugar === 'number' ? ' mg/dL' : ''}\n`;
+        report += `Total Insulin: ${totalInsulin}${typeof totalInsulin === 'string' && totalInsulin !== 'N/A' ? ' units' : ''}\n`;
         report += `Entries: ${todayEntries.length}\n`;
 
         return encodeURIComponent(report);
@@ -1278,6 +1410,314 @@ const whatsappManager = new WhatsAppManager();
 const reminderManager = new ReminderManager();
 const contactManager = new ContactManager();
 
+// Diet Guide Data
+const dietData = {
+    vegetables: {
+        name: 'Vegetables',
+        icon: '🥬',
+        good: [
+            { name: 'Spinach', benefit: 'Low carb, high fiber, rich in iron' },
+            { name: 'Broccoli', benefit: 'Low GI, high in vitamins C & K' },
+            { name: 'Cauliflower', benefit: 'Low carb alternative to rice/potatoes' },
+            { name: 'Cabbage', benefit: 'Low calorie, high fiber' },
+            { name: 'Bitter Gourd (Karela)', benefit: 'Natural blood sugar reducer' },
+            { name: 'Cucumber', benefit: 'Hydrating, very low carb' },
+            { name: 'Tomatoes', benefit: 'Low GI, rich in lycopene' },
+            { name: 'Bell Peppers', benefit: 'Low carb, high in vitamin C' },
+            { name: 'Okra (Bhindi)', benefit: 'Helps lower blood sugar' },
+            { name: 'Green Beans', benefit: 'Low GI, good fiber source' }
+        ],
+        moderate: [
+            { name: 'Carrots', benefit: 'Moderate GI when cooked, eat raw' },
+            { name: 'Beets', benefit: 'Higher sugar, eat in small portions' },
+            { name: 'Peas', benefit: 'Higher carb, limit portion size' },
+            { name: 'Corn', benefit: 'Higher carb, eat occasionally' }
+        ],
+        avoid: [
+            { name: 'Potatoes', reason: 'High GI, spikes blood sugar quickly' },
+            { name: 'Sweet Potatoes (large portions)', reason: 'High carb, limit to small amounts' }
+        ]
+    },
+    fruits: {
+        name: 'Fruits',
+        icon: '🍎',
+        good: [
+            { name: 'Berries (Strawberries, Blueberries)', benefit: 'Low GI, high antioxidants' },
+            { name: 'Apple (with skin)', benefit: 'Good fiber, moderate GI' },
+            { name: 'Pear', benefit: 'High fiber, low GI' },
+            { name: 'Orange', benefit: 'Good vitamin C, moderate GI' },
+            { name: 'Guava', benefit: 'Low GI, high fiber' },
+            { name: 'Papaya (small portion)', benefit: 'Good for digestion' },
+            { name: 'Watermelon (small portion)', benefit: 'Hydrating, eat in moderation' },
+            { name: 'Pomegranate', benefit: 'Antioxidants, moderate portions' }
+        ],
+        moderate: [
+            { name: 'Banana (small)', benefit: 'Higher carb, eat half at a time' },
+            { name: 'Grapes', benefit: 'Higher sugar, limit to small handful' },
+            { name: 'Mango', benefit: 'High sugar, eat small portions only' },
+            { name: 'Pineapple', benefit: 'Moderate GI, small portions' }
+        ],
+        avoid: [
+            { name: 'Dried Fruits (Dates, Raisins)', reason: 'Very high sugar concentration' },
+            { name: 'Fruit Juices', reason: 'No fiber, rapid sugar spike' },
+            { name: 'Canned Fruits in Syrup', reason: 'Added sugar' },
+            { name: 'Chikoo (Sapota)', reason: 'Very high sugar content' }
+        ]
+    },
+    grains: {
+        name: 'Grains & Cereals',
+        icon: '🌾',
+        good: [
+            { name: 'Brown Rice', benefit: 'Higher fiber than white rice' },
+            { name: 'Quinoa', benefit: 'Complete protein, low GI' },
+            { name: 'Oats (Steel-cut)', benefit: 'High fiber, stabilizes blood sugar' },
+            { name: 'Barley', benefit: 'Very high fiber, low GI' },
+            { name: 'Whole Wheat Roti', benefit: 'Better than white bread' },
+            { name: 'Millets (Ragi, Jowar, Bajra)', benefit: 'Low GI, high nutrients' },
+            { name: 'Buckwheat', benefit: 'Gluten-free, low GI' }
+        ],
+        moderate: [
+            { name: 'White Rice (small portion)', benefit: 'Limit to 1/2 cup, pair with vegetables' },
+            { name: 'Whole Wheat Bread', benefit: 'Better than white, still moderate GI' },
+            { name: 'Pasta (whole wheat)', benefit: 'Al dente cooking lowers GI' }
+        ],
+        avoid: [
+            { name: 'White Bread', reason: 'High GI, rapid sugar spike' },
+            { name: 'White Rice (large portions)', reason: 'High GI, low fiber' },
+            { name: 'Refined Flour (Maida)', reason: 'Very high GI, no nutrients' },
+            { name: 'Instant Oats', reason: 'Processed, higher GI than steel-cut' },
+            { name: 'Sugary Cereals', reason: 'High sugar, low fiber' }
+        ]
+    },
+    proteins: {
+        name: 'Proteins',
+        icon: '🍗',
+        good: [
+            { name: 'Chicken Breast (skinless)', benefit: 'Lean protein, no carbs' },
+            { name: 'Fish (Salmon, Tuna, Mackerel)', benefit: 'Omega-3, heart healthy' },
+            { name: 'Eggs', benefit: 'Complete protein, very low carb' },
+            { name: 'Lentils (Dal)', benefit: 'Plant protein, high fiber' },
+            { name: 'Chickpeas (Chana)', benefit: 'Good protein and fiber' },
+            { name: 'Tofu', benefit: 'Low carb, plant-based protein' },
+            { name: 'Greek Yogurt (unsweetened)', benefit: 'High protein, probiotics' },
+            { name: 'Paneer (cottage cheese)', benefit: 'Low carb, high protein' }
+        ],
+        moderate: [
+            { name: 'Red Meat (lean cuts)', benefit: 'Limit to 1-2 times per week' },
+            { name: 'Kidney Beans (Rajma)', benefit: 'Higher carb, moderate portions' },
+            { name: 'Regular Yogurt', benefit: 'Choose unsweetened varieties' }
+        ],
+        avoid: [
+            { name: 'Processed Meats (Sausages, Bacon)', reason: 'High sodium, preservatives' },
+            { name: 'Fried Chicken', reason: 'High fat, breading adds carbs' },
+            { name: 'Sweetened Yogurt', reason: 'Added sugars' }
+        ]
+    },
+    nuts: {
+        name: 'Nuts & Seeds',
+        icon: '🥜',
+        good: [
+            { name: 'Almonds', benefit: 'Low GI, healthy fats, vitamin E' },
+            { name: 'Walnuts', benefit: 'Omega-3, brain health' },
+            { name: 'Chia Seeds', benefit: 'High fiber, omega-3' },
+            { name: 'Flax Seeds', benefit: 'Fiber, omega-3, lignans' },
+            { name: 'Pumpkin Seeds', benefit: 'Magnesium, zinc' },
+            { name: 'Sunflower Seeds', benefit: 'Vitamin E, selenium' },
+            { name: 'Pistachios', benefit: 'Lower calorie nut option' },
+            { name: 'Peanuts (unsalted)', benefit: 'Protein, healthy fats' }
+        ],
+        moderate: [
+            { name: 'Cashews', benefit: 'Higher carb than other nuts, limit portion' },
+            { name: 'Coconut', benefit: 'High fat, moderate portions' }
+        ],
+        avoid: [
+            { name: 'Salted/Roasted Nuts', reason: 'High sodium, added oils' },
+            { name: 'Honey-Roasted Nuts', reason: 'Added sugars' },
+            { name: 'Nut Butters with Sugar', reason: 'Check labels for added sugar' }
+        ]
+    },
+    beverages: {
+        name: 'Beverages',
+        icon: '☕',
+        good: [
+            { name: 'Water', benefit: 'Best choice, stay hydrated' },
+            { name: 'Green Tea', benefit: 'Antioxidants, may improve insulin sensitivity' },
+            { name: 'Black Coffee (unsweetened)', benefit: 'May improve insulin sensitivity' },
+            { name: 'Herbal Tea', benefit: 'No calories, various health benefits' },
+            { name: 'Buttermilk (unsweetened)', benefit: 'Probiotics, low calorie' },
+            { name: 'Vegetable Juice (fresh)', benefit: 'Nutrients, but limit portion' }
+        ],
+        moderate: [
+            { name: 'Milk (low-fat)', benefit: 'Calcium, but has natural sugars' },
+            { name: 'Coconut Water', benefit: 'Natural electrolytes, moderate sugar' },
+            { name: 'Coffee with Milk', benefit: 'Limit sugar, use low-fat milk' }
+        ],
+        avoid: [
+            { name: 'Soda/Soft Drinks', reason: 'Very high sugar, no nutrients' },
+            { name: 'Fruit Juices (packaged)', reason: 'High sugar, no fiber' },
+            { name: 'Energy Drinks', reason: 'High sugar and caffeine' },
+            { name: 'Sweetened Tea/Coffee', reason: 'Added sugars' },
+            { name: 'Alcohol', reason: 'Can cause blood sugar fluctuations' },
+            { name: 'Flavored Milk', reason: 'Added sugars' }
+        ]
+    },
+    snacks: {
+        name: 'Snacks',
+        icon: '🍿',
+        good: [
+            { name: 'Raw Vegetables with Hummus', benefit: 'Fiber, protein, low GI' },
+            { name: 'Handful of Nuts', benefit: 'Healthy fats, protein' },
+            { name: 'Boiled Eggs', benefit: 'High protein, zero carbs' },
+            { name: 'Greek Yogurt with Berries', benefit: 'Protein, antioxidants' },
+            { name: 'Roasted Chickpeas', benefit: 'Fiber, protein, crunchy' },
+            { name: 'Cucumber Slices', benefit: 'Hydrating, very low calorie' },
+            { name: 'Apple with Peanut Butter', benefit: 'Fiber and protein combo' }
+        ],
+        moderate: [
+            { name: 'Popcorn (air-popped)', benefit: 'Whole grain, watch portions' },
+            { name: 'Dark Chocolate (70%+)', benefit: 'Small piece, antioxidants' },
+            { name: 'Whole Grain Crackers', benefit: 'Pair with protein' }
+        ],
+        avoid: [
+            { name: 'Chips/Crisps', reason: 'High carb, high sodium, fried' },
+            { name: 'Cookies/Biscuits', reason: 'High sugar, refined flour' },
+            { name: 'Candy/Sweets', reason: 'Pure sugar, rapid spike' },
+            { name: 'Pastries/Cakes', reason: 'High sugar and refined carbs' },
+            { name: 'Samosas/Pakoras', reason: 'Deep fried, high carb' },
+            { name: 'Namkeen/Bhujia', reason: 'High carb, high sodium, fried' }
+        ]
+    }
+};
+
+let currentDietFilter = 'all';
+let currentDietSearch = '';
+
+function renderDietGuide() {
+    renderDietCategories();
+    setupDietFilters();
+    setupDietSearch();
+}
+
+function renderDietCategories() {
+    const container = document.getElementById('dietCategories');
+    if (!container) return;
+
+    const categories = Object.keys(dietData);
+    
+    container.innerHTML = categories.map(categoryKey => {
+        const category = dietData[categoryKey];
+        return `
+            <div class="card diet-category-card" data-category="${categoryKey}">
+                <div class="card-header">
+                    <h2 class="card-title">${category.icon} ${category.name}</h2>
+                </div>
+                <div class="card-body">
+                    ${renderFoodList('good', category.good)}
+                    ${renderFoodList('moderate', category.moderate)}
+                    ${renderFoodList('avoid', category.avoid)}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function renderFoodList(type, foods) {
+    if (!foods || foods.length === 0) return '';
+    
+    const titles = {
+        good: '✅ Good Choices',
+        moderate: '⚠️ Eat in Moderation',
+        avoid: '❌ Avoid or Limit'
+    };
+    
+    const classes = {
+        good: 'food-good',
+        moderate: 'food-moderate',
+        avoid: 'food-avoid'
+    };
+
+    return `
+        <div class="food-section ${classes[type]}" data-type="${type}">
+            <h3 class="food-section-title">${titles[type]}</h3>
+            <div class="food-list">
+                ${foods.map(food => `
+                    <div class="food-item" data-food-name="${food.name.toLowerCase()}">
+                        <div class="food-name">${food.name}</div>
+                        <div class="food-info">${food.benefit || food.reason}</div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+}
+
+function setupDietFilters() {
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentDietFilter = btn.dataset.category;
+            applyDietFilters();
+        });
+    });
+}
+
+function setupDietSearch() {
+    const searchInput = document.getElementById('foodSearch');
+    if (!searchInput) return;
+    
+    searchInput.addEventListener('input', (e) => {
+        currentDietSearch = e.target.value.toLowerCase();
+        applyDietFilters();
+    });
+}
+
+function applyDietFilters() {
+    const allSections = document.querySelectorAll('.food-section');
+    const allItems = document.querySelectorAll('.food-item');
+    const allCards = document.querySelectorAll('.diet-category-card');
+    
+    // Reset visibility
+    allSections.forEach(section => section.style.display = 'block');
+    allItems.forEach(item => item.style.display = 'flex');
+    allCards.forEach(card => card.style.display = 'block');
+    
+    // Apply category filter
+    if (currentDietFilter !== 'all') {
+        allSections.forEach(section => {
+            if (section.dataset.type !== currentDietFilter) {
+                section.style.display = 'none';
+            }
+        });
+    }
+    
+    // Apply search filter
+    if (currentDietSearch) {
+        allItems.forEach(item => {
+            const foodName = item.dataset.foodName;
+            if (!foodName.includes(currentDietSearch)) {
+                item.style.display = 'none';
+            }
+        });
+        
+        // Hide empty sections
+        allSections.forEach(section => {
+            const visibleItems = section.querySelectorAll('.food-item[style="display: flex;"], .food-item:not([style])');
+            if (visibleItems.length === 0) {
+                section.style.display = 'none';
+            }
+        });
+        
+        // Hide empty cards
+        allCards.forEach(card => {
+            const visibleSections = card.querySelectorAll('.food-section[style="display: block;"], .food-section:not([style])');
+            if (visibleSections.length === 0) {
+                card.style.display = 'none';
+            }
+        });
+    }
+}
+
 // Load settings
 function loadAllSettings() {
     // User Profile
@@ -1613,16 +2053,16 @@ function setupNewFeatureListeners() {
         });
     });
 
-    // Export - JSON
+    // Export - Excel
     document.getElementById('exportJSON').addEventListener('click', () => {
-        data.exportToJSON();
-        showToast('📄 Data exported as JSON!', 'success');
+        data.exportToExcel();
+        showToast('📊 Data exported to Excel!', 'success');
     });
 
-    // Export - CSV
+    // Export - CSV (backup option)
     document.getElementById('exportCSV').addEventListener('click', () => {
         data.exportToCSV();
-        showToast('📊 Data exported as CSV!', 'success');
+        showToast('📄 Data exported as CSV!', 'success');
     });
 
     // Clear old data

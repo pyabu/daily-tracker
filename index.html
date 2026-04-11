@@ -37,6 +37,10 @@
                 <span class="nav-icon">💡</span>
                 <span class="nav-text">Insights</span>
             </a>
+            <a href="#" class="nav-item" data-page="diet-guide">
+                <span class="nav-icon">🥗</span>
+                <span class="nav-text">Diet Guide</span>
+            </a>
             <a href="#" class="nav-item" data-page="settings">
                 <span class="nav-icon">⚙️</span>
                 <span class="nav-text">Settings</span>
@@ -137,7 +141,7 @@
                 </button>
                 <button class="action-btn tertiary" id="exportQuick">
                     <span class="btn-icon">📊</span>
-                    <span>Export Data</span>
+                    <span>Export to Excel</span>
                 </button>
             </div>
 
@@ -232,12 +236,24 @@
                             <div class="form-row">
                                 <div class="form-group">
                                     <label>Blood Sugar (mg/dL)</label>
-                                    <input type="number" id="sugarLevel" min="0" max="600" required>
+                                    <div class="input-with-checkbox">
+                                        <input type="number" id="sugarLevel" min="0" max="600" class="form-input">
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" id="sugarNotTaken">
+                                            <span>Not Taken</span>
+                                        </label>
+                                    </div>
                                     <div class="sugar-indicator" id="sugarIndicator"></div>
                                 </div>
                                 <div class="form-group">
                                     <label>Insulin Dose (units)</label>
-                                    <input type="number" id="insulinDose" min="0" step="0.5" value="0">
+                                    <div class="input-with-checkbox">
+                                        <input type="number" id="insulinDose" min="0" step="0.5" value="0" class="form-input">
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" id="insulinNotTaken">
+                                            <span>Not Taken</span>
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
 
@@ -281,6 +297,85 @@
         <!-- Insights Page -->
         <section class="page" id="insights-page">
             <div class="insights-grid" id="insightsContainer"></div>
+        </section>
+
+        <!-- Diet Guide Page -->
+        <section class="page" id="diet-guide-page">
+            <!-- Search and Filter -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">🔍 Search Foods</h2>
+                </div>
+                <div class="card-body">
+                    <div class="diet-search-container">
+                        <input type="search" id="foodSearch" class="search-input" placeholder="Search for foods..." style="width: 100%; max-width: 400px;">
+                        <div class="diet-filter-buttons">
+                            <button type="button" class="filter-btn active" data-category="all">All</button>
+                            <button type="button" class="filter-btn" data-category="good">✅ Good</button>
+                            <button type="button" class="filter-btn" data-category="moderate">⚠️ Moderate</button>
+                            <button type="button" class="filter-btn" data-category="avoid">❌ Avoid</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Food Categories -->
+            <div class="diet-categories" id="dietCategories">
+                <!-- Will be populated by JavaScript -->
+            </div>
+
+            <!-- Diet Tips -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">💡 Diabetes Diet Tips</h2>
+                </div>
+                <div class="card-body">
+                    <div class="diet-tips">
+                        <div class="tip-item">
+                            <span class="tip-icon">🥗</span>
+                            <div class="tip-content">
+                                <h3>Eat More Fiber</h3>
+                                <p>High-fiber foods help control blood sugar levels. Aim for 25-30g daily.</p>
+                            </div>
+                        </div>
+                        <div class="tip-item">
+                            <span class="tip-icon">🍽️</span>
+                            <div class="tip-content">
+                                <h3>Portion Control</h3>
+                                <p>Use smaller plates and measure portions to avoid overeating.</p>
+                            </div>
+                        </div>
+                        <div class="tip-item">
+                            <span class="tip-icon">⏰</span>
+                            <div class="tip-content">
+                                <h3>Regular Meal Times</h3>
+                                <p>Eat at consistent times each day to maintain stable blood sugar.</p>
+                            </div>
+                        </div>
+                        <div class="tip-item">
+                            <span class="tip-icon">💧</span>
+                            <div class="tip-content">
+                                <h3>Stay Hydrated</h3>
+                                <p>Drink 8-10 glasses of water daily. Avoid sugary drinks.</p>
+                            </div>
+                        </div>
+                        <div class="tip-item">
+                            <span class="tip-icon">🚫</span>
+                            <div class="tip-content">
+                                <h3>Limit Processed Foods</h3>
+                                <p>Avoid packaged snacks, white bread, and sugary cereals.</p>
+                            </div>
+                        </div>
+                        <div class="tip-item">
+                            <span class="tip-icon">🥜</span>
+                            <div class="tip-content">
+                                <h3>Healthy Snacks</h3>
+                                <p>Keep nuts, seeds, and vegetables handy for between meals.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </section>
 
         <!-- Settings Page -->
@@ -599,13 +694,13 @@
                         </div>
                         
                         <div class="button-group">
-                            <button type="button" class="settings-btn" id="exportJSON">
-                                <span class="btn-icon">📄</span>
-                                Export JSON
-                            </button>
-                            <button type="button" class="settings-btn" id="exportCSV">
+                            <button type="button" class="settings-btn primary" id="exportJSON">
                                 <span class="btn-icon">📊</span>
-                                Export CSV
+                                Export to Excel
+                            </button>
+                            <button type="button" class="settings-btn secondary" id="exportCSV">
+                                <span class="btn-icon">📄</span>
+                                Export CSV (Backup)
                             </button>
                         </div>
                         
@@ -655,6 +750,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script type="module" src="firebase-config.js"></script>
     <script type="module" src="app.js"></script>
 </body>
