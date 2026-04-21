@@ -1710,33 +1710,69 @@ body.profile-required .sidebar-overlay {
 
 /* Tablet (768px and below) */
 @media (max-width: 768px) {
+    /* Top Bar Mobile Optimization */
     .top-bar {
-        flex-direction: column;
-        gap: 15px;
-        padding: 15px;
+        padding: 12px 16px;
+        gap: 12px;
     }
 
-    .top-bar-left,
-    .top-bar-right {
-        width: 100%;
+    .top-bar-left {
+        flex: 1;
+        min-width: 0;
     }
 
     .top-bar-right {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
+        flex-wrap: wrap;
+        gap: 8px;
     }
 
     .user-greeting {
+        order: -1;
         width: 100%;
         margin-right: 0 !important;
+        padding: 8px 12px;
     }
 
+    .date-badge {
+        padding: 8px 12px;
+        font-size: 0.75rem;
+    }
+
+    .notification-badge {
+        padding: 8px 12px;
+    }
+
+    /* Page Content */
+    .page {
+        padding: 16px;
+    }
+
+    /* Stats Grid - 2 columns on tablet */
     .stats-grid {
         grid-template-columns: repeat(2, 1fr);
-        gap: 15px;
+        gap: 12px;
     }
 
+    .stat-card {
+        padding: 16px;
+        gap: 12px;
+    }
+
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        font-size: 1.5rem;
+    }
+
+    .stat-value {
+        font-size: 1.5em;
+    }
+
+    .stat-label {
+        font-size: 0.65rem;
+    }
+
+    /* Quick Actions */
     .quick-actions {
         flex-direction: column;
         gap: 10px;
@@ -1744,15 +1780,30 @@ body.profile-required .sidebar-overlay {
 
     .action-btn {
         width: 100%;
+        padding: 14px 20px;
+        font-size: 0.95rem;
     }
 
-    .settings-grid {
-        grid-template-columns: 1fr;
-        gap: 20px;
+    /* Cards */
+    .card {
+        margin-bottom: 16px;
+        border-radius: var(--radius-lg);
     }
 
+    .card-header {
+        padding: 14px 16px;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .card-body {
+        padding: 16px;
+    }
+
+    /* Forms */
     .form-row {
-        flex-direction: column;
+        grid-template-columns: 1fr;
+        gap: 16px;
     }
 
     .meal-selector {
@@ -1760,110 +1811,363 @@ body.profile-required .sidebar-overlay {
         gap: 10px;
     }
 
+    .meal-card {
+        padding: 12px;
+    }
+
+    .meal-icon {
+        font-size: 1.5em;
+    }
+
+    /* Settings */
+    .settings-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
     .reminder-times {
         grid-template-columns: 1fr;
+        gap: 12px;
     }
 
     .button-group {
         grid-template-columns: 1fr;
-        gap: 12px;
+        gap: 10px;
     }
 
     .button-group button {
         width: 100%;
     }
 
-    .alert-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 15px;
-    }
-
+    /* Contacts */
     .contact-item {
         flex-direction: column;
         align-items: flex-start;
-        gap: 15px;
+        gap: 12px;
+        padding: 14px;
     }
 
     .contact-actions {
         width: 100%;
-        justify-content: flex-start;
+        flex-wrap: wrap;
+        gap: 8px;
     }
 
-    .sync-info {
-        gap: 15px;
+    .contact-btn {
+        flex: 1;
+        min-width: 100px;
     }
 
-    .storage-info {
-        flex-direction: column;
-        gap: 15px;
-    }
-
-    .page-title {
-        font-size: 24px;
-    }
-
-    .page-subtitle {
-        font-size: 13px;
-    }
-}
-
-/* Mobile (480px and below) */
-@media (max-width: 480px) {
-    .sidebar {
-        width: 100%;
-    }
-
-    .stats-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .stat-card {
-        padding: 20px;
-    }
-
-    .stat-icon {
-        font-size: 32px;
-    }
-
-    .stat-value {
-        font-size: 28px;
-    }
-
-    .card {
-        padding: 15px;
-        border-radius: 12px;
-    }
-
-    .card-header {
+    /* Alerts */
+    .alert-header {
         flex-direction: column;
         align-items: flex-start;
-        gap: 10px;
+        gap: 12px;
     }
 
-    .meal-selector {
-        grid-template-columns: 1fr;
+    .alert-config {
+        padding-left: 0;
     }
 
-    .meal-card {
-        padding: 15px;
+    /* Timeline */
+    .timeline {
+        gap: 12px;
     }
 
     .timeline-item {
-        padding: 15px;
+        padding: 12px;
+        gap: 12px;
     }
 
+    /* Entries */
     .entry-card {
-        padding: 15px;
+        padding: 14px;
     }
 
+    .entry-header {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .entry-details {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    /* Goals Page */
+    .goal-display {
+        flex-direction: column;
+        text-align: center;
+        gap: 20px;
+    }
+
+    .streak-calendar {
+        gap: 8px;
+    }
+
+    .achievements-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+
+    /* Diet Guide */
+    .diet-filter-buttons {
+        gap: 8px;
+    }
+
+    .filter-btn {
+        padding: 10px 16px;
+        font-size: 0.85rem;
+    }
+
+    .diet-tips {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    /* Typography */
+    .page-title {
+        font-size: 1.5rem;
+    }
+
+    .page-subtitle {
+        font-size: 0.8rem;
+    }
+
+    /* Sync Info */
+    .sync-info,
+    .storage-info {
+        gap: 12px;
+    }
+
+    .info-row {
+        padding: 10px;
+    }
+}
+
+/* Mobile (480px and below) - Optimized for small screens */
+@media (max-width: 480px) {
+    /* Layout */
+    body {
+        font-size: 14px;
+    }
+
+    .sidebar {
+        width: 85%;
+        max-width: 320px;
+    }
+
+    .page {
+        padding: 12px;
+    }
+
+    /* Top Bar - Compact */
+    .top-bar {
+        padding: 10px 12px;
+        gap: 10px;
+    }
+
+    .menu-hamburger {
+        width: 42px;
+        height: 42px;
+        font-size: 1.25rem;
+    }
+
+    .page-title {
+        font-size: 1.25rem;
+        line-height: 1.3;
+    }
+
+    .page-subtitle {
+        font-size: 0.75rem;
+    }
+
+    .user-greeting {
+        padding: 6px 10px;
+        gap: 8px;
+    }
+
+    .user-greeting-avatar {
+        font-size: 1.25rem;
+    }
+
+    .user-greeting-name {
+        font-size: 0.8rem;
+    }
+
+    .user-greeting-age {
+        font-size: 0.7rem;
+    }
+
+    .date-badge {
+        font-size: 0.7rem;
+        padding: 6px 10px;
+    }
+
+    .notification-badge {
+        padding: 6px 10px;
+    }
+
+    /* Stats Grid - Single Column */
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .stat-card {
+        padding: 14px 16px;
+        gap: 14px;
+    }
+
+    .stat-icon {
+        width: 44px;
+        height: 44px;
+        font-size: 1.35rem;
+    }
+
+    .stat-value {
+        font-size: 1.75em;
+    }
+
+    .stat-label {
+        font-size: 0.65rem;
+    }
+
+    .stat-trend {
+        font-size: 0.75em;
+    }
+
+    /* Quick Actions - Full Width */
+    .quick-actions {
+        gap: 8px;
+    }
+
+    .action-btn {
+        padding: 12px 16px;
+        font-size: 0.9rem;
+        min-height: 48px;
+    }
+
+    /* Cards - Compact */
+    .card {
+        border-radius: var(--radius-md);
+        margin-bottom: 12px;
+    }
+
+    .card-header {
+        padding: 12px 14px;
+        gap: 8px;
+    }
+
+    .card-title {
+        font-size: 1rem;
+    }
+
+    .card-badge {
+        font-size: 0.75rem;
+        padding: 4px 8px;
+    }
+
+    .card-body {
+        padding: 14px;
+    }
+
+    /* Forms - Mobile Optimized */
     .form-container {
         padding: 0;
     }
 
+    .form-group {
+        margin-bottom: 16px;
+    }
+
+    .form-group label {
+        font-size: 0.85rem;
+        margin-bottom: 6px;
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+        padding: 11px 14px;
+        font-size: 16px; /* Prevents zoom on iOS */
+        border-radius: var(--radius-sm);
+    }
+
+    /* Meal Selector - Single Column */
+    .meal-selector {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .meal-card {
+        flex-direction: row;
+        justify-content: flex-start;
+        padding: 12px 16px;
+        gap: 12px;
+    }
+
+    .meal-icon {
+        font-size: 1.5em;
+    }
+
+    .meal-name {
+        font-size: 0.9rem;
+    }
+
+    /* Submit Button */
     .submit-btn {
-        padding: 14px;
-        font-size: 15px;
+        padding: 13px 20px;
+        font-size: 0.95rem;
+        min-height: 48px;
+    }
+
+    /* Timeline - Compact */
+    .timeline {
+        gap: 10px;
+    }
+
+    .timeline-item {
+        padding: 12px 14px;
+        gap: 10px;
+    }
+
+    .timeline-icon {
+        font-size: 1.5em;
+    }
+
+    /* Entry Cards */
+    .entry-card {
+        padding: 12px 14px;
+    }
+
+    .entry-header {
+        gap: 8px;
+        margin-bottom: 10px;
+    }
+
+    .entry-time {
+        font-size: 0.9rem;
+    }
+
+    .entry-meal {
+        font-size: 0.75rem;
+        padding: 4px 10px;
+    }
+
+    .entry-details {
+        gap: 8px;
+    }
+
+    .entry-detail {
+        font-size: 0.85rem;
+    }
+
+    /* Settings - Full Width Buttons */
+    .settings-btn {
+        padding: 12px 16px;
+        font-size: 0.9rem;
+        min-height: 48px;
     }
 
     .card-body > .settings-btn,
@@ -1871,92 +2175,275 @@ body.profile-required .sidebar-overlay {
         max-width: 100%;
         width: 100%;
     }
-    
-    .settings-btn {
-        padding: 14px 20px;
-        font-size: 0.95em;
-        min-height: 48px;
+
+    /* Contacts - Mobile Layout */
+    .contact-item {
+        padding: 12px;
     }
-    
-    .settings-btn .btn-icon {
-        font-size: 1.1em;
+
+    .contact-name {
+        font-size: 0.95rem;
+    }
+
+    .contact-details {
+        font-size: 0.8rem;
+        flex-direction: column;
+        gap: 6px;
+        align-items: flex-start;
+    }
+
+    .contact-actions {
+        gap: 6px;
     }
 
     .contact-btn {
         padding: 8px 12px;
-        font-size: 13px;
+        font-size: 0.8rem;
+        min-width: 90px;
     }
 
-    .date-badge {
-        font-size: 12px;
-        padding: 8px 12px;
+    /* Goals Page - Mobile */
+    .goal-circle {
+        transform: scale(0.9);
     }
 
-    .notification-badge {
-        width: 40px;
-        height: 40px;
+    .goal-percentage {
+        font-size: 28px;
     }
 
-    .badge-icon {
-        font-size: 18px;
+    .goal-info h3 {
+        font-size: 1.1rem;
     }
 
-    .badge-count {
-        width: 18px;
-        height: 18px;
-        font-size: 10px;
+    .goal-desc,
+    .goal-stat {
+        font-size: 0.85rem;
     }
 
+    .streak-calendar {
+        gap: 6px;
+    }
+
+    .streak-day {
+        padding: 8px 4px;
+    }
+
+    .streak-day-name {
+        font-size: 0.65rem;
+    }
+
+    .streak-day-icon {
+        font-size: 1.25rem;
+    }
+
+    .achievements-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .achievement-card {
+        padding: 16px;
+    }
+
+    .achievement-icon {
+        font-size: 2.5rem;
+    }
+
+    /* Diet Guide - Mobile */
+    .diet-filter-buttons {
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .filter-btn {
+        width: 100%;
+        padding: 10px 14px;
+        font-size: 0.85rem;
+    }
+
+    .food-item {
+        padding: 10px 12px;
+    }
+
+    .food-name {
+        font-size: 0.9rem;
+    }
+
+    .food-info {
+        font-size: 0.8rem;
+    }
+
+    .diet-tips {
+        gap: 10px;
+    }
+
+    .tip-item {
+        padding: 12px;
+        gap: 10px;
+    }
+
+    .tip-icon {
+        font-size: 1.5em;
+    }
+
+    .tip-content h3 {
+        font-size: 0.9rem;
+    }
+
+    .tip-content p {
+        font-size: 0.8rem;
+    }
+
+    /* Alert Settings */
+    .alert-setting {
+        padding: 12px;
+    }
+
+    .alert-icon {
+        font-size: 1.5em;
+    }
+
+    .alert-title {
+        font-size: 0.95rem;
+    }
+
+    .alert-desc {
+        font-size: 0.8rem;
+    }
+
+    /* Welcome Modal */
     .welcome-content {
-        width: 95%;
-        margin: 10px;
+        width: 92%;
+        max-width: 360px;
+        margin: 12px;
     }
 
     .welcome-header {
-        padding: 30px 20px;
+        padding: 24px 18px;
     }
 
     .welcome-icon {
-        font-size: 50px;
+        font-size: 48px;
     }
 
     .welcome-header h2 {
-        font-size: 24px;
+        font-size: 1.35rem;
+    }
+
+    .welcome-header p {
+        font-size: 0.85rem;
     }
 
     #welcomeForm {
-        padding: 30px 20px;
+        padding: 24px 18px;
     }
 
-    .user-greeting {
-        padding: 8px 12px;
+    #welcomeForm .form-group {
+        margin-bottom: 18px;
     }
 
-    .user-greeting > span {
-        font-size: 20px !important;
+    #welcomeForm input {
+        padding: 12px 14px;
+        font-size: 16px; /* Prevents zoom */
     }
 
-    .user-greeting #displayUserName {
-        font-size: 13px !important;
+    .welcome-btn {
+        padding: 14px;
+        font-size: 0.95rem;
     }
 
-    .user-greeting #displayUserAge {
-        font-size: 11px !important;
+    /* Toast - Mobile Position */
+    .toast {
+        bottom: 20px;
+        right: 12px;
+        left: 12px;
+        max-width: none;
+        padding: 12px 16px;
+        font-size: 0.85rem;
+    }
+
+    /* History Chart */
+    #sugarChart {
+        min-height: 200px;
+    }
+
+    /* Search Input */
+    .search-input {
+        width: 100%;
+        padding: 10px 14px;
+        font-size: 16px; /* Prevents zoom */
     }
 }
 
-/* Landscape Mobile */
+/* Landscape Mobile - Optimized for horizontal orientation */
 @media (max-width: 768px) and (orientation: landscape) {
     .sidebar {
-        width: 250px;
+        width: 260px;
     }
 
     .stats-grid {
         grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+    }
+
+    .stat-card {
+        padding: 12px;
+    }
+
+    .stat-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1.25rem;
+    }
+
+    .stat-value {
+        font-size: 1.35em;
     }
 
     .meal-selector {
         grid-template-columns: repeat(3, 1fr);
+    }
+
+    .quick-actions {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .action-btn {
+        flex: 1;
+        min-width: 150px;
+    }
+
+    .goal-display {
+        flex-direction: row;
+        text-align: left;
+    }
+
+    .achievements-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    .diet-filter-buttons {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .filter-btn {
+        flex: 1;
+        min-width: 100px;
+    }
+
+    /* Reduce vertical spacing in landscape */
+    .page {
+        padding: 12px 16px;
+    }
+
+    .card {
+        margin-bottom: 12px;
+    }
+
+    .top-bar {
+        padding: 10px 16px;
     }
 }
 
@@ -2005,30 +2492,79 @@ body.profile-required .sidebar-overlay {
 
 /* Touch Device Optimizations */
 @media (hover: none) and (pointer: coarse) {
+    /* Larger touch targets */
     .action-btn,
     .submit-btn,
     .settings-btn,
     .nav-item {
-        min-height: 44px;
-        padding: 12px 20px;
+        min-height: 48px;
+        padding: 13px 20px;
     }
 
     .meal-option input[type="radio"] + .meal-card {
-        min-height: 60px;
+        min-height: 56px;
+        padding: 14px 16px;
     }
 
     .toggle-slider {
-        width: 54px;
-        height: 30px;
+        width: 56px;
+        height: 32px;
     }
 
-    .toggle-slider:before {
-        width: 24px;
-        height: 24px;
+    .toggle-slider::before {
+        width: 26px;
+        height: 26px;
+        top: 3px;
+        left: 3px;
     }
 
-    input[type="checkbox"]:checked + .toggle-slider:before {
+    .toggle-label input[type="checkbox"]:checked + .toggle-slider::before {
         transform: translateX(24px);
+    }
+
+    /* Better checkbox/radio sizes */
+    input[type="checkbox"],
+    input[type="radio"] {
+        min-width: 20px;
+        min-height: 20px;
+    }
+
+    /* Remove hover effects on touch devices */
+    .stat-card:hover,
+    .card:hover,
+    .action-btn:hover,
+    .nav-item:hover {
+        transform: none;
+    }
+
+    /* Add active states instead */
+    .action-btn:active,
+    .submit-btn:active,
+    .settings-btn:active {
+        transform: scale(0.98);
+        opacity: 0.9;
+    }
+
+    .nav-item:active {
+        background: var(--sidebar-active);
+    }
+
+    /* Better form control sizes */
+    input,
+    textarea,
+    select {
+        min-height: 44px;
+        font-size: 16px !important; /* Prevents zoom on iOS */
+    }
+
+    textarea {
+        min-height: 88px;
+    }
+
+    /* Larger clickable areas for links */
+    .card-link {
+        padding: 8px;
+        margin: -8px;
     }
 }
 
@@ -2166,28 +2702,94 @@ body.profile-required .sidebar-overlay {
 
 /* Very small screens (360px and below) */
 @media (max-width: 360px) {
+    /* Ultra compact for small phones */
+    .page {
+        padding: 10px;
+    }
+
+    .top-bar {
+        padding: 8px 10px;
+    }
+
+    .menu-hamburger {
+        width: 38px;
+        height: 38px;
+        font-size: 1.15rem;
+    }
+
+    .page-title {
+        font-size: 1.1rem;
+    }
+
+    .stat-card {
+        padding: 12px 14px;
+    }
+
     .stat-value {
-        font-size: 24px;
+        font-size: 1.5em;
     }
 
     .stat-label {
-        font-size: 12px;
+        font-size: 0.6rem;
+    }
+
+    .stat-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1.25rem;
     }
 
     .card-title {
-        font-size: 16px;
+        font-size: 0.95rem;
+    }
+
+    .meal-card {
+        padding: 10px 14px;
     }
 
     .meal-icon {
-        font-size: 28px;
+        font-size: 1.35em;
     }
 
     .meal-name {
-        font-size: 13px;
+        font-size: 0.85rem;
     }
 
-    .action-btn span:last-child {
-        font-size: 13px;
+    .action-btn {
+        padding: 11px 14px;
+        font-size: 0.85rem;
+    }
+
+    .action-btn .btn-icon {
+        font-size: 1em;
+    }
+
+    .submit-btn {
+        padding: 12px 16px;
+        font-size: 0.9rem;
+    }
+
+    .settings-btn {
+        padding: 11px 14px;
+        font-size: 0.85rem;
+    }
+
+    .contact-btn {
+        padding: 7px 10px;
+        font-size: 0.75rem;
+        min-width: 80px;
+    }
+
+    .achievement-icon {
+        font-size: 2rem;
+    }
+
+    .achievement-name {
+        font-size: 0.8rem;
+    }
+
+    .achievement-desc {
+        font-size: 0.7rem;
     }
 }
 
@@ -2229,6 +2831,12 @@ body.profile-required .sidebar-overlay {
 @media (max-width: 768px) {
     .sidebar-nav {
         -webkit-overflow-scrolling: touch;
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE/Edge */
+    }
+
+    .sidebar-nav::-webkit-scrollbar {
+        display: none; /* Chrome/Safari */
     }
 
     .page {
@@ -2238,10 +2846,72 @@ body.profile-required .sidebar-overlay {
     /* Prevent horizontal scroll */
     body {
         overflow-x: hidden;
+        width: 100%;
     }
 
     .main-content {
         overflow-x: hidden;
+        width: 100%;
+    }
+
+    /* Better tap targets */
+    .nav-item,
+    .action-btn,
+    .submit-btn,
+    .settings-btn,
+    .contact-btn,
+    .filter-btn {
+        -webkit-tap-highlight-color: rgba(99, 102, 241, 0.1);
+        touch-action: manipulation;
+    }
+
+    /* Prevent text selection on buttons */
+    button,
+    .nav-item,
+    .meal-card,
+    .filter-btn {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+    }
+
+    /* Smooth momentum scrolling */
+    .card-body,
+    .timeline,
+    .entries-list,
+    .history-list {
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Better form inputs on mobile */
+    input,
+    textarea,
+    select {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        border-radius: var(--radius-sm);
+    }
+
+    /* Remove iOS input shadows */
+    input[type="text"],
+    input[type="number"],
+    input[type="tel"],
+    input[type="email"],
+    input[type="date"],
+    input[type="time"],
+    textarea {
+        -webkit-appearance: none;
+        box-shadow: none;
+    }
+
+    /* Better select styling on mobile */
+    select {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        padding-right: 36px;
     }
 }
 
