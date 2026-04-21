@@ -334,12 +334,162 @@ body.profile-required .sidebar-overlay {
     cursor: pointer;
     flex-shrink: 0;
     box-shadow: 0 2px 4px rgba(14, 165, 233, 0.2);
-    transition: all 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Ripple effect container */
+.menu-hamburger::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s ease, height 0.6s ease;
+}
+
+/* Pulse animation on hover */
+.menu-hamburger::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: var(--radius-md);
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, transparent 70%);
+    opacity: 0;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 0;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.05);
+    }
 }
 
 .menu-hamburger:hover {
     background: var(--primary-dark);
-    transform: translateY(-1px);
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.4);
+}
+
+.menu-hamburger:hover::before {
+    width: 100%;
+    height: 100%;
+}
+
+.menu-hamburger:active {
+    transform: translateY(0) scale(0.95);
+    box-shadow: 0 2px 4px rgba(14, 165, 233, 0.3);
+}
+
+/* Icon animation */
+.menu-hamburger-icon {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 20px;
+    height: 16px;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hamburger-line {
+    display: block;
+    width: 100%;
+    height: 2px;
+    background: white;
+    border-radius: 2px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-origin: center;
+}
+
+.hamburger-line:nth-child(1) {
+    width: 100%;
+}
+
+.hamburger-line:nth-child(2) {
+    width: 80%;
+    margin-left: auto;
+}
+
+.hamburger-line:nth-child(3) {
+    width: 100%;
+}
+
+/* Hover effect - lines expand */
+.menu-hamburger:hover .hamburger-line {
+    width: 100%;
+}
+
+.menu-hamburger:hover .hamburger-line:nth-child(1) {
+    transform: translateX(-2px);
+}
+
+.menu-hamburger:hover .hamburger-line:nth-child(3) {
+    transform: translateX(2px);
+}
+
+/* Active state - transform to X */
+.menu-hamburger.active .hamburger-line:nth-child(1) {
+    transform: translateY(6px) rotate(45deg);
+}
+
+.menu-hamburger.active .hamburger-line:nth-child(2) {
+    opacity: 0;
+    transform: scaleX(0);
+}
+
+.menu-hamburger.active .hamburger-line:nth-child(3) {
+    transform: translateY(-6px) rotate(-45deg);
+}
+
+/* Active state hover - keep X shape */
+.menu-hamburger.active:hover .hamburger-line:nth-child(1) {
+    transform: translateY(6px) rotate(45deg) scale(1.1);
+}
+
+.menu-hamburger.active:hover .hamburger-line:nth-child(2) {
+    opacity: 0;
+    transform: scaleX(0);
+}
+
+.menu-hamburger.active:hover .hamburger-line:nth-child(3) {
+    transform: translateY(-6px) rotate(-45deg) scale(1.1);
+}
+
+.menu-hamburger:active .menu-hamburger-icon {
+    transform: scale(0.9);
+}
+
+/* Ripple effect animation */
+.ripple-effect {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    transform: scale(0);
+    animation: ripple-animation 0.6s ease-out;
+    pointer-events: none;
+    z-index: 0;
+}
+
+@keyframes ripple-animation {
+    to {
+        transform: scale(2);
+        opacity: 0;
+    }
 }
 
 @media (max-width: 768px) {

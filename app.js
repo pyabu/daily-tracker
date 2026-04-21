@@ -258,6 +258,26 @@ function updateUserDisplay(user) {
     document.getElementById('pageSubtitle').textContent = `${greeting}, ${user.name}!`;
 }
 
+// Create ripple effect on button click
+function createRipple(event, element) {
+    const ripple = document.createElement('span');
+    const rect = element.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    const x = event.clientX - rect.left - size / 2;
+    const y = event.clientY - rect.top - size / 2;
+    
+    ripple.style.width = ripple.style.height = size + 'px';
+    ripple.style.left = x + 'px';
+    ripple.style.top = y + 'px';
+    ripple.classList.add('ripple-effect');
+    
+    element.appendChild(ripple);
+    
+    setTimeout(() => {
+        ripple.remove();
+    }, 600);
+}
+
 function setSidebarOpen(isOpen) {
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('sidebarOverlay');
@@ -265,9 +285,11 @@ function setSidebarOpen(isOpen) {
     if (isOpen) {
         sidebar.classList.add('active');
         overlay.classList.add('active');
+        if (btn) btn.classList.add('active');
     } else {
         sidebar.classList.remove('active');
         overlay.classList.remove('active');
+        if (btn) btn.classList.remove('active');
     }
     if (btn) {
         btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
@@ -312,13 +334,17 @@ function setupNavigation() {
         });
     });
     
-    document.getElementById('menuHamburger')?.addEventListener('click', () => {
+    document.getElementById('menuHamburger')?.addEventListener('click', (e) => {
         if (!isProfileComplete()) {
             showToast('Please enter your name and age first.', 'error');
             document.getElementById('welcomeModal').style.display = 'flex';
             setProfileGate(true);
             return;
         }
+        
+        // Add ripple effect
+        createRipple(e, e.currentTarget);
+        
         const open = !sidebar.classList.contains('active');
         setSidebarOpen(open);
     });
