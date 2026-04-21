@@ -293,13 +293,13 @@ body.profile-required .sidebar-overlay {
     }
 }
 
-/* Top Bar - Beautiful Redesign with Fixed Overlay */
+/* Top Bar - Fixed Mobile Text Visibility */
 .top-bar {
     background: rgba(255, 255, 255, 0.98);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border-bottom: 1px solid var(--border-color);
-    padding: 12px 24px;
+    padding: 12px 16px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -308,7 +308,7 @@ body.profile-required .sidebar-overlay {
     z-index: 100;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     min-height: 64px;
-    gap: 16px;
+    gap: 12px;
 }
 
 .top-bar-left {
@@ -317,7 +317,7 @@ body.profile-required .sidebar-overlay {
     gap: 12px;
     min-width: 0;
     flex: 1;
-    max-width: 50%;
+    overflow: hidden;
 }
 
 .menu-hamburger {
@@ -381,6 +381,7 @@ body.profile-required .sidebar-overlay {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    max-width: 100%;
 }
 
 .page-subtitle {
@@ -390,6 +391,7 @@ body.profile-required .sidebar-overlay {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    max-width: 100%;
 }
 
 .top-bar-right {
@@ -397,10 +399,9 @@ body.profile-required .sidebar-overlay {
     align-items: center;
     gap: 10px;
     flex-shrink: 0;
-    max-width: 50%;
 }
 
-/* User Greeting - Fixed Overlay Issue */
+/* User Greeting - Compact on Mobile */
 .user-greeting {
     display: flex;
     align-items: center;
@@ -410,8 +411,9 @@ body.profile-required .sidebar-overlay {
     background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
     border: none;
     box-shadow: 0 2px 8px rgba(14, 165, 233, 0.2);
-    max-width: 200px;
+    max-width: 180px;
     min-width: 0;
+    flex-shrink: 0;
 }
 
 .user-greeting-avatar {
@@ -456,7 +458,7 @@ body.profile-required .sidebar-overlay {
     display: none;
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 1200px) {
     .date-badge {
         display: block;
     }
@@ -496,52 +498,34 @@ body.profile-required .sidebar-overlay {
     text-align: center;
 }
 
-/* Mobile Responsive Top Bar */
+/* Mobile Responsive Top Bar - Fixed */
 @media (max-width: 768px) {
     .top-bar {
-        padding: 10px 16px;
-        gap: 10px;
+        padding: 10px 12px;
+        gap: 8px;
+        min-height: 56px;
     }
     
     .top-bar-left {
-        max-width: 45%;
+        flex: 1;
+        min-width: 0;
+        max-width: 100%;
+    }
+    
+    .top-bar-heading {
+        flex: 1;
+        min-width: 0;
     }
     
     .top-bar-right {
-        max-width: 55%;
-        gap: 8px;
+        gap: 6px;
+        flex-shrink: 0;
+        max-width: 45%;
     }
     
     .user-greeting {
         padding: 6px 10px;
-        max-width: 150px;
-    }
-    
-    .user-greeting-name {
-        font-size: 0.75rem;
-    }
-    
-    .user-greeting-age {
-        font-size: 0.65rem;
-    }
-    
-    .page-title {
-        font-size: 1.2rem;
-    }
-    
-    .page-subtitle {
-        font-size: 0.75rem;
-    }
-}
-
-@media (max-width: 480px) {
-    .top-bar {
-        padding: 8px 12px;
-    }
-    
-    .user-greeting {
-        max-width: 120px;
-        padding: 6px 8px;
+        max-width: 100px;
         gap: 6px;
     }
     
@@ -557,12 +541,111 @@ body.profile-required .sidebar-overlay {
         font-size: 0.6rem;
     }
     
+    .page-title {
+        font-size: 1.05rem;
+    }
+    
+    .page-subtitle {
+        font-size: 0.72rem;
+    }
+    
     .notification-badge {
         padding: 6px 8px;
     }
+}
+
+@media (max-width: 480px) {
+    .top-bar {
+        padding: 8px 10px;
+        gap: 6px;
+    }
+    
+    .top-bar-left {
+        gap: 8px;
+    }
+    
+    .top-bar-right {
+        max-width: 40%;
+    }
+    
+    .user-greeting {
+        max-width: 85px;
+        padding: 5px 7px;
+        gap: 5px;
+    }
+    
+    .user-greeting-avatar {
+        font-size: 1rem;
+    }
+    
+    .user-greeting-name {
+        font-size: 0.65rem;
+    }
+    
+    .user-greeting-age {
+        font-size: 0.55rem;
+    }
+    
+    .notification-badge {
+        padding: 5px 7px;
+    }
+    
+    .badge-icon {
+        font-size: 1rem;
+    }
     
     .page-title {
-        font-size: 1.1rem;
+        font-size: 0.95rem;
+    }
+    
+    .page-subtitle {
+        font-size: 0.68rem;
+    }
+}
+
+/* Very Small Screens */
+@media (max-width: 360px) {
+    .top-bar {
+        padding: 8px;
+        gap: 4px;
+    }
+    
+    .top-bar-right {
+        max-width: 35%;
+    }
+    
+    .user-greeting {
+        max-width: 70px;
+        padding: 4px 6px;
+        gap: 4px;
+    }
+    
+    .user-greeting-avatar {
+        font-size: 0.95rem;
+    }
+    
+    .user-greeting-name {
+        font-size: 0.6rem;
+    }
+    
+    .user-greeting-age {
+        display: none;
+    }
+    
+    .notification-badge {
+        padding: 4px 6px;
+    }
+    
+    .badge-icon {
+        font-size: 0.95rem;
+    }
+    
+    .page-title {
+        font-size: 0.9rem;
+    }
+    
+    .page-subtitle {
+        font-size: 0.62rem;
     }
 }
 
