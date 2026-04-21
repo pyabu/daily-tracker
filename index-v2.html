@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#667eea">
+    <meta name="description" content="Smart Diabetes Tracker - Track blood sugar, insulin, meals, and more">
+    <title>Smart Diabetes Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles-v2.css">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
+</head>
+<body>
+    <!-- Mobile Bottom Navigation -->
+    <nav class="mobile-nav" id="mobileNav">
+        <button class="mobile-nav-item active" data-page="dashboard">
+            <span class="nav-icon">📊</span>
+            <span class="nav-label">Home</span>
+        </button>
+        <button class="mobile-nav-item" data-page="add-entry">
+            <span class="nav-icon">➕</span>
+            <span class="nav-label">Add</span>
+        </button>
+        <button class="mobile-nav-item" data-page="analytics">
+            <span class="nav-icon">📈</span>
+            <span class="nav-label">Stats</span>
+        </button>
+        <button class="mobile-nav-item" data-page="diet-guide">
+            <span class="nav-icon">🥗</span>
+            <span class="nav-label">Diet</span>
+        </button>
+        <button class="mobile-nav-item" data-page="more">
+            <span class="nav-icon">⚙️</span>
+            <span class="nav-label">More</span>
+        </button>
+    </nav>
+
+    <!-- Desktop Sidebar -->
+    <aside class="desktop-sidebar" id="desktopSidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <span class="logo-icon">🩸</span>
+                <span class="logo-text">Diabetes Tracker</span>
+            </div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="#" class="sidebar-item active" data-page="dashboard">
+                <span class="item-icon">📊</span>
+                <span class="item-text">Dashboard</span>
+            </a>
+            <a href="#" class="sidebar-item" data-page="add-entry">
+                <span class="item-icon">➕</span>
+                <span class="item-text">Add Entry</span>
+            </a>
+            <a href="#" class="sidebar-item" data-page="analytics">
+                <span class="item-icon">📈</span>
+                <span class="item-text">Analytics</span>
+            </a>
+            <a href="#" class="sidebar-item" data-page="goals">
+                <span class="item-icon">🎯</span>
+                <span class="item-text">Goals</span>
+            </a>
+            <a href="#" class="sidebar-item" data-page="medications">
+                <span class="item-icon">💊</span>
+                <span class="item-text">Medications</span>
+            </a>
+            <a href="#" class="sidebar-item" data-page="diet-guide">
+                <span class="item-icon">🥗</span>
+                <span class="item-text">Diet Guide</span>
+            </a>
+            <a href="#" class="sidebar-item" data-page="history">
+                <span class="item-icon">📅</span>
+                <span class="item-text">History</span>
+            </a>
+            <a href="#" class="sidebar-item" data-page="more">
+                <span class="item-icon">⚙️</span>
+                <span class="item-text">Settings</span>
+            </a>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <div class="user-profile-mini">
+                <div class="profile-avatar">👤</div>
+                <div class="profile-info">
+                    <div class="profile-name" id="sidebarUserName">User</div>
+                    <div class="profile-status">🟢 Active</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-container">
+        <!-- Top Header -->
+        <header class="top-header">
+            <div class="header-left">
+                <h1 class="page-title" id="pageTitle">Dashboard</h1>
+                <p class="page-subtitle" id="pageSubtitle">Track your health journey</p>
+            </div>
+            <div class="header-right">
+                <button class="header-btn" id="notificationBtn">
+                    <span class="btn-icon">🔔</span>
+                    <span class="notification-badge" id="notifBadge">3</span>
+                </button>
+                <button class="header-btn" id="themeToggle">
+                    <span class="btn-icon" id="themeIcon">🌙</span>
+                </button>
+                <div class="user-avatar" id="userAvatar">
+                    <span>👤</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Dashboard Page -->
+        <section class="page active" id="dashboard-page">
+            <!-- Quick Stats -->
+            <div class="quick-stats">
+                <div class="stat-card primary">
+                    <div class="stat-icon">📊</div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="todayScore">--</div>
+                        <div class="stat-label">Today's Score</div>
+                        <div class="stat-trend">↗ +5% from yesterday</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card success">
+                    <div class="stat-icon">🩸</div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="avgSugar">--</div>
+                        <div class="stat-label">Avg Sugar</div>
+                        <div class="stat-trend">mg/dL</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card warning">
+                    <div class="stat-icon">💉</div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="totalInsulin">--</div>
+                        <div class="stat-label">Total Insulin</div>
+                        <div class="stat-trend">units today</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card info">
+                    <div class="stat-icon">🔥</div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="streakDays">0</div>
+                        <div class="stat-label">Day Streak</div>
+                        <div class="stat-trend">Keep it up!</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Today's Progress -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h2 class="section-title">Today's Progress</h2>
+                    <span class="section-badge" id="progressBadge">3/5 meals</span>
+                </div>
+                <div class="progress-timeline" id="progressTimeline">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions-grid">
+                <button class="action-card" data-navigate="add-entry">
+                    <span class="action-icon">➕</span>
+                    <span class="action-text">Log Entry</span>
+                </button>
+                <button class="action-card" data-navigate="medications">
+                    <span class="action-icon">💊</span>
+                    <span class="action-text">Medications</span>
+                </button>
+                <button class="action-card" id="quickExport">
+                    <span class="action-icon">📊</span>
+                    <span class="action-text">Export Data</span>
+                </button>
+                <button class="action-card" id="quickShare">
+                    <span class="action-icon">📱</span>
+                    <span class="action-text">Share Report</span>
+                </button>
+            </div>
+
+            <!-- Recent Readings Chart -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h2 class="section-title">Blood Sugar Trend</h2>
+                    <div class="chart-controls">
+                        <button class="chart-btn active" data-range="7">7D</button>
+                        <button class="chart-btn" data-range="14">14D</button>
+                        <button class="chart-btn" data-range="30">30D</button>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="sugarTrendChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Insights & Tips -->
+            <div class="insights-grid">
+                <div class="insight-card good">
+                    <div class="insight-icon">✅</div>
+                    <div class="insight-content">
+                        <h3>Great Control!</h3>
+                        <p>Your sugar levels have been stable for 3 days</p>
+                    </div>
+                </div>
+                <div class="insight-card warning">
+                    <div class="insight-icon">⚠️</div>
+                    <div class="insight-content">
+                        <h3>Evening Spike</h3>
+                        <p>Consider reducing carbs at dinner</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Add Entry Page -->
+        <section class="page" id="add-entry-page">
+            <div class="form-card">
+                <h2 class="form-title">Log New Entry</h2>
+                
+                <form id="entryForm" class="entry-form">
+                    <!-- Date & Time -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Date</label>
+                            <input type="date" id="entryDate" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Time</label>
+                            <input type="time" id="entryTime" class="form-input" required>
+                        </div>
+                    </div>
+
+                    <!-- Meal Type -->
+                    <div class="form-group">
+                        <label class="form-label">Meal Type</label>
+                        <div class="meal-grid">
+                            <label class="meal-option">
+                                <input type="radio" name="mealType" value="morning" required>
+                                <div class="meal-card">
+                                    <span class="meal-icon">🌅</span>
+                                    <span class="meal-name">Morning</span>
+                                </div>
+                            </label>
+                            <label class="meal-option">
+                                <input type="radio" name="mealType" value="afternoon">
+                                <div class="meal-card">
+                                    <span class="meal-icon">☀️</span>
+                                    <span class="meal-name">Afternoon</span>
+                                </div>
+                            </label>
+                            <label class="meal-option">
+                                <input type="radio" name="mealType" value="evening">
+                                <div class="meal-card">
+                                    <span class="meal-icon">🌆</span>
+                                    <span class="meal-name">Evening</span>
+                                </div>
+                            </label>
+                            <label class="meal-option">
+                                <input type="radio" name="mealType" value="dinner">
+                                <div class="meal-card">
+                                    <span class="meal-icon">🌙</span>
+                                    <span class="meal-name">Dinner</span>
+                                </div>
+                            </label>
+                            <label class="meal-option">
+                                <input type="radio" name="mealType" value="snack">
+                                <div class="meal-card">
+                                    <span class="meal-icon">🍪</span>
+                                    <span class="meal-name">Snack</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Blood Sugar -->
+                    <div class="form-group">
+                        <label class="form-label">Blood Sugar (mg/dL)</label>
+                        <div class="input-with-addon">
+                            <input type="number" id="sugarLevel" class="form-input" min="0" max="600" placeholder="Enter value">
+                            <span class="input-addon">mg/dL</span>
+                        </div>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="sugarNotTaken">
+                            <span>Not measured</span>
+                        </label>
+                        <div class="sugar-indicator" id="sugarIndicator"></div>
+                    </div>
+
+                    <!-- Insulin -->
+                    <div class="form-group">
+                        <label class="form-label">Insulin Dose (units)</label>
+                        <div class="input-with-addon">
+                            <input type="number" id="insulinDose" class="form-input" min="0" step="0.5" value="0" placeholder="Enter units">
+                            <span class="input-addon">units</span>
+                        </div>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="insulinNotTaken">
+                            <span>Not taken</span>
+                        </label>
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="form-group">
+                        <label class="form-label">Notes (Optional)</label>
+                        <textarea id="notes" class="form-textarea" rows="3" placeholder="What did you eat? How do you feel?"></textarea>
+                    </div>
+
+                    <!-- Submit -->
+                    <button type="submit" class="submit-btn">
+                        <span class="btn-icon">💾</span>
+                        <span>Save Entry</span>
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- Analytics Page -->
+        <section class="page" id="analytics-page">
+            <div class="analytics-grid">
+                <!-- A1C Estimator -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2 class="section-title">A1C Estimator</h2>
+                    </div>
+                    <div class="a1c-display">
+                        <div class="a1c-value" id="a1cValue">--</div>
+                        <div class="a1c-label">Estimated A1C</div>
+                        <div class="a1c-range" id="a1cRange">Based on 30-day average</div>
+                    </div>
+                    <div class="a1c-gauge" id="a1cGauge">
+                        <!-- Gauge visualization -->
+                    </div>
+                </div>
+
+                <!-- Time in Range -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2 class="section-title">Time in Range</h2>
+                    </div>
+                    <div class="range-stats">
+                        <div class="range-item low">
+                            <div class="range-label">Low (&lt;70)</div>
+                            <div class="range-value" id="lowPercent">0%</div>
+                        </div>
+                        <div class="range-item normal">
+                            <div class="range-label">Normal (70-140)</div>
+                            <div class="range-value" id="normalPercent">0%</div>
+                        </div>
+                        <div class="range-item high">
+                            <div class="range-label">High (&gt;140)</div>
+                            <div class="range-value" id="highPercent">0%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pattern Analysis -->
+                <div class="section-card full-width">
+                    <div class="section-header">
+                        <h2 class="section-title">Pattern Analysis</h2>
+                    </div>
+                    <div class="pattern-grid" id="patternGrid">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Goals Page -->
+        <section class="page" id="goals-page">
+            <div class="goals-container">
+                <!-- Daily Goal -->
+                <div class="goal-card">
+                    <div class="goal-header">
+                        <h3 class="goal-title">Daily Goal</h3>
+                        <span class="goal-status">In Progress</span>
+                    </div>
+                    <div class="goal-progress">
+                        <div class="progress-ring">
+                            <svg width="120" height="120">
+                                <circle cx="60" cy="60" r="54" class="progress-ring-circle"></circle>
+                                <circle cx="60" cy="60" r="54" class="progress-ring-fill" id="dailyGoalRing"></circle>
+                            </svg>
+                            <div class="progress-text">
+                                <span class="progress-value" id="dailyGoalPercent">0%</span>
+                            </div>
+                        </div>
+                        <div class="goal-details">
+                            <p class="goal-desc">Keep blood sugar in range (70-140 mg/dL)</p>
+                            <p class="goal-stat" id="dailyGoalStat">0/5 readings in range</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Weekly Streak -->
+                <div class="goal-card">
+                    <div class="goal-header">
+                        <h3 class="goal-title">Weekly Streak</h3>
+                        <span class="goal-badge">🔥 <span id="streakCount">0</span> days</span>
+                    </div>
+                    <div class="streak-calendar" id="streakCalendar">
+                        <!-- 7-day calendar -->
+                    </div>
+                </div>
+
+                <!-- Achievements -->
+                <div class="achievements-section">
+                    <h3 class="section-title">Achievements</h3>
+                    <div class="achievements-grid" id="achievementsGrid">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Medications Page -->
+        <section class="page" id="medications-page">
+            <div class="medications-container">
+                <button class="add-medication-btn" id="addMedicationBtn">
+                    <span class="btn-icon">➕</span>
+                    <span>Add Medication</span>
+                </button>
+
+                <div class="medications-list" id="medicationsList">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Diet Guide Page (Reuse existing) -->
+        <section class="page" id="diet-guide-page">
+            <!-- Diet guide content from previous implementation -->
+        </section>
+
+        <!-- History Page -->
+        <section class="page" id="history-page">
+            <div class="history-controls">
+                <input type="search" id="historySearch" class="search-input" placeholder="Search entries...">
+                <select id="historyFilter" class="filter-select">
+                    <option value="all">All Entries</option>
+                    <option value="today">Today</option>
+                    <option value="week">This Week</option>
+                    <option value="month">This Month</option>
+                </select>
+            </div>
+
+            <div class="history-list" id="historyList">
+                <!-- Populated by JS -->
+            </div>
+        </section>
+
+        <!-- More/Settings Page -->
+        <section class="page" id="more-page">
+            <div class="settings-grid">
+                <!-- Settings sections from previous implementation -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Floating Action Button (Mobile) -->
+    <button class="fab" id="fabBtn">
+        <span class="fab-icon">➕</span>
+    </button>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <span class="toast-icon" id="toastIcon">✅</span>
+        <span class="toast-message" id="toastMessage">Success!</span>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script type="module" src="firebase-config.js"></script>
+    <script type="module" src="app-v2.js"></script>
+</body>
+</html>
