@@ -370,6 +370,7 @@ function navigateTo(pageName) {
     const titles = {
         'dashboard': 'Dashboard',
         'add-entry': 'Add New Entry',
+        'goals': 'Goals & Achievements',
         'history': 'History & Trends',
         'insights': 'Insights & Patterns',
         'diet-guide': 'Diet Guide',
@@ -380,6 +381,7 @@ function navigateTo(pageName) {
     // Load page-specific content
     if (pageName === 'history') renderHistory();
     if (pageName === 'insights') renderInsights();
+    if (pageName === 'goals') renderGoalsPage();
     if (pageName === 'diet-guide') renderDietGuide();
 }
 
@@ -2098,4 +2100,207 @@ function setupNewFeatureListeners() {
             }
         });
     }
+}
+
+
+// ============================================
+// GOALS PAGE FUNCTIONALITY
+// ============================================
+
+function renderGoalsPage() {
+    updateDailyGoal();
+    updateWeeklyStreak();
+    updateAchievements();
+}
+
+function updateDailyGoal() {
+    const todayEntries = data.getTodayEntries();
+    const sugarEntries = todayEntries.filter(e => e.sugarLevel !== null);
+    
+    // Count readings in healthy range (70-140 mg/dL)
+    const inRangeCount = sugarEntries.filter(e => e.sugarLevel >= 70 && e.sugarLevel <= 140).length;
+    const totalReadings = sugarEntries.length;
+    
+    // Calculate percentage (target: at least 5 readings, all in range)
+    const targetReadings = 5;
+    const percentage = totalReadings === 0 ? 0 : Math.min(100, Math.round((inRangeCount / targetReadings) * 100));
+    
+    // Update progress ring
+    const progressRing = document.getElementById('goalProgressRing');
+    if (progressRing) {
+        const circumference = 2 * Math.PI * 70; // radius = 70
+        const offset = circumference - (percentage / 100) * circumference;
+        progressRing.style.strokeDashoffset = offset;
+        
+        // Add gradient definition if not exists
+        if (!document.querySelector('#goalGradient')) {
+            const svg = progressRing.closest('svg');
+            const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+            defs.innerHTML = `
+                <linearGradient id="goalGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
+                    <stop offset="50%" style="stop-color:#8b5cf6;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#d946ef;stop-opacity:1" />
+                </linearGradient>
+            `;
+            svg.insertBefore(defs, svg.firstChild);
+        }
+    }
+    
+    // Update percentage text
+    const percentageEl = document.getElementById('goalPercentage');
+    if (percentageEl) {
+        percentageEl.textContent = `${percentage}%`;
+    }
+    
+    // Update goal stat
+    const goalStat = document.getElementById('goalStat');
+    if (goalStat) {
+        goalStat.textContent = `${inRangeCount}/${targetReadings} readings in range today`;
+    }
+    
+    // Update status badge
+    const goalStatus = document.getElementById('goalStatus');
+    if (goalStatus) {
+        if (percentage === 100) {
+            goalStatus.textContent = '🎉 Goal Achieved!';
+            goalStatus.classList.add('success');
+        } else if (percentage >= 60) {
+            goalStatus.textContent = 'On Track';
+            goalStatus.classList.add('success');
+        } else {
+            goalStatus.textContent = 'In Progress';
+            goalStatus.classList.remove('success');
+        }
+    }
+}
+
+function updateWeeklyStreak() {
+    const streakCalendar = document.getElementById('streakCalendar');
+    if (!streakCalendar) return;
+    
+    const today = new Date();
+    const days = [];
+    
+    // Get last 7 days
+    for (let i = 6; i >= 0; i--) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
+        days.push(date);
+    }
+    
+    // Calculate streak
+    let currentStreak = 0;
+    for (let i = days.length - 1; i >= 0; i--) {
+        const dateStr = days[i].toISOString().split('T')[0];
+        const entries = data.getEntriesByDate(dateStr);
+        if (entries.length > 0) {
+            currentStreak++;
+        } else {
+            break;
+        }
+    }
+    
+    // Render calendar
+    streakCalendar.innerHTML = days.map((date, index) => {
+        const dateStr = date.toISOString().split('T')[0];
+        const todayStr = new Date().toISOString().split('T')[0];
+        const entries = data.getEntriesByDate(dateStr);
+        const hasEntries = entries.length > 0;
+        const isToday = dateStr === todayStr;
+        
+        const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+        const dayNum = date.getDate();
+        
+        return `
+            <div class="streak-day ${hasEntries ? 'completed' : ''} ${isToday ? 'today' : ''}">
+                <div class="streak-day-name">${dayName}</div>
+                <div class="streak-day-icon">${hasEntries ? '✅' : dayNum}</div>
+            </div>
+        `;
+    }).join('');
+    
+    // Update streak badge
+    const streakBadge = document.getElementById('streakBadge');
+    if (streakBadge) {
+        streakBadge.textContent = `${currentStreak} day${currentStreak !== 1 ? 's' : ''}`;
+    }
+    
+    // Update streak message
+    const streakMessage = document.getElementById('streakMessage');
+    if (streakMessage) {
+        if (currentStreak === 0) {
+            streakMessage.textContent = 'Start your streak by logging entries daily!';
+        } else if (currentStreak === 1) {
+            streakMessage.textContent = 'Great start! Keep it going tomorrow! 💪';
+        } else if (currentStreak < 7) {
+            streakMessage.textContent = `Amazing! ${7 - currentStreak} more day${7 - currentStreak !== 1 ? 's' : ''} to reach a week! 🔥`;
+        } else {
+            streakMessage.textContent = `Incredible ${currentStreak}-day streak! You're crushing it! 🏆`;
+        }
+    }
+}
+
+function updateAchievements() {
+    const achievementsGrid = document.getElementById('achievementsGrid');
+    if (!achievementsGrid) return;
+    
+    const totalEntries = data.entries.length;
+    const todayEntries = data.getTodayEntries();
+    
+    // Calculate streak
+    let currentStreak = 0;
+    const today = new Date();
+    for (let i = 0; i < 365; i++) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
+        const dateStr = date.toISOString().split('T')[0];
+        const entries = data.getEntriesByDate(dateStr);
+        if (entries.length > 0) {
+            currentStreak++;
+        } else {
+            break;
+        }
+    }
+    
+    // Check if today all readings are in range
+    const sugarEntries = todayEntries.filter(e => e.sugarLevel !== null);
+    const allInRange = sugarEntries.length > 0 && sugarEntries.every(e => e.sugarLevel >= 70 && e.sugarLevel <= 140);
+    
+    // Define achievements
+    const achievements = [
+        {
+            icon: '🥇',
+            name: 'First Entry',
+            desc: 'Log your first entry',
+            unlocked: totalEntries >= 1
+        },
+        {
+            icon: '📅',
+            name: '7-Day Streak',
+            desc: 'Log entries for 7 days',
+            unlocked: currentStreak >= 7
+        },
+        {
+            icon: '🎯',
+            name: 'Perfect Day',
+            desc: 'All readings in range',
+            unlocked: allInRange
+        },
+        {
+            icon: '💯',
+            name: '100 Entries',
+            desc: 'Log 100 total entries',
+            unlocked: totalEntries >= 100
+        }
+    ];
+    
+    // Render achievements
+    achievementsGrid.innerHTML = achievements.map(achievement => `
+        <div class="achievement-card ${achievement.unlocked ? 'unlocked' : 'locked'}">
+            <div class="achievement-icon">${achievement.icon}</div>
+            <div class="achievement-name">${achievement.name}</div>
+            <div class="achievement-desc">${achievement.desc}</div>
+        </div>
+    `).join('');
 }
