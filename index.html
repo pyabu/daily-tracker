@@ -29,6 +29,10 @@
                 <span class="nav-icon">➕</span>
                 <span class="nav-text">Add Entry</span>
             </a>
+            <a href="#" class="nav-item" data-page="goals">
+                <span class="nav-icon">🎯</span>
+                <span class="nav-text">Goals</span>
+            </a>
             <a href="#" class="nav-item" data-page="history">
                 <span class="nav-icon">📅</span>
                 <span class="nav-text">History</span>
@@ -297,6 +301,80 @@
         <!-- Insights Page -->
         <section class="page" id="insights-page">
             <div class="insights-grid" id="insightsContainer"></div>
+        </section>
+
+        <!-- Goals Page -->
+        <section class="page" id="goals-page">
+            <div class="goals-container">
+                <!-- Daily Goal Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">🎯 Daily Goal</h2>
+                        <span class="card-badge success" id="goalStatus">In Progress</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="goal-display">
+                            <div class="goal-circle">
+                                <svg width="160" height="160" class="progress-ring">
+                                    <circle cx="80" cy="80" r="70" class="progress-ring-bg"></circle>
+                                    <circle cx="80" cy="80" r="70" class="progress-ring-fill" id="goalProgressRing"></circle>
+                                </svg>
+                                <div class="goal-percentage" id="goalPercentage">0%</div>
+                            </div>
+                            <div class="goal-info">
+                                <h3>Keep Blood Sugar in Range</h3>
+                                <p class="goal-desc">Target: 70-140 mg/dL</p>
+                                <p class="goal-stat" id="goalStat">0/5 readings in range today</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Weekly Streak -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">🔥 Weekly Streak</h2>
+                        <span class="card-badge" id="streakBadge">0 days</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="streak-calendar" id="streakCalendar">
+                            <!-- 7-day calendar populated by JS -->
+                        </div>
+                        <p class="streak-message" id="streakMessage">Start your streak by logging entries daily!</p>
+                    </div>
+                </div>
+
+                <!-- Achievements -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">🏆 Achievements</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="achievements-grid" id="achievementsGrid">
+                            <div class="achievement-card locked">
+                                <div class="achievement-icon">🥇</div>
+                                <div class="achievement-name">First Entry</div>
+                                <div class="achievement-desc">Log your first entry</div>
+                            </div>
+                            <div class="achievement-card locked">
+                                <div class="achievement-icon">📅</div>
+                                <div class="achievement-name">7-Day Streak</div>
+                                <div class="achievement-desc">Log entries for 7 days</div>
+                            </div>
+                            <div class="achievement-card locked">
+                                <div class="achievement-icon">🎯</div>
+                                <div class="achievement-name">Perfect Day</div>
+                                <div class="achievement-desc">All readings in range</div>
+                            </div>
+                            <div class="achievement-card locked">
+                                <div class="achievement-icon">💯</div>
+                                <div class="achievement-name">100 Entries</div>
+                                <div class="achievement-desc">Log 100 total entries</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </section>
 
         <!-- Diet Guide Page -->

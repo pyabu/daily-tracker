@@ -2524,3 +2524,188 @@ body.profile-required .sidebar-overlay {
     transform: none !important;
     box-shadow: none !important;
 }
+
+
+/* ============================================
+   GOALS PAGE STYLES
+   ============================================ */
+
+.goals-container {
+    display: grid;
+    gap: 24px;
+}
+
+.goal-display {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    padding: 20px 0;
+}
+
+.goal-circle {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.progress-ring {
+    transform: rotate(-90deg);
+}
+
+.progress-ring-bg {
+    fill: none;
+    stroke: var(--bg-tertiary);
+    stroke-width: 12;
+}
+
+.progress-ring-fill {
+    fill: none;
+    stroke: url(#goalGradient);
+    stroke-width: 12;
+    stroke-linecap: round;
+    stroke-dasharray: 440;
+    stroke-dashoffset: 440;
+    transition: stroke-dashoffset 1s ease;
+}
+
+.goal-percentage {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 32px;
+    font-weight: 800;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.goal-info h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.goal-desc {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+}
+
+.goal-stat {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--primary);
+}
+
+/* Streak Calendar */
+.streak-calendar {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.streak-day {
+    aspect-ratio: 1;
+    border-radius: var(--radius-md);
+    background: var(--bg-tertiary);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 12px;
+    border: 2px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.streak-day.completed {
+    background: var(--gradient-success);
+    border-color: var(--success);
+    color: white;
+    transform: scale(1.05);
+}
+
+.streak-day.today {
+    border-color: var(--primary);
+    border-width: 3px;
+}
+
+.streak-day-name {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.streak-day-icon {
+    font-size: 24px;
+}
+
+.streak-message {
+    text-align: center;
+    font-size: 14px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+/* Achievements Grid */
+.achievements-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 16px;
+}
+
+.achievement-card {
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 8px;
+    border: 2px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.achievement-card.unlocked {
+    background: var(--gradient-primary);
+    border-color: var(--primary);
+    color: white;
+    transform: scale(1.05);
+    box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+}
+
+.achievement-card.locked {
+    opacity: 0.5;
+    filter: grayscale(1);
+}
+
+.achievement-icon {
+    font-size: 40px;
+    margin-bottom: 4px;
+}
+
+.achievement-name {
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.achievement-desc {
+    font-size: 11px;
+    opacity: 0.8;
+}
+
+/* Responsive Goals */
+@media (max-width: 768px) {
+    .goal-display {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .achievements-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
